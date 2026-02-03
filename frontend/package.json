@@ -1,0 +1,41 @@
+{
+  "name": "resumax-vn-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.72.1",
+    "@descope/nextjs-sdk": "^0.15.9",
+    "@fontsource/roboto": "^5.2.9",
+    "@google/generative-ai": "^0.24.1",
+    "@pdfme/generator": "^5.5.8",
+    "bcryptjs": "^2.4.3",
+    "clsx": "^2.1.0",
+    "html2canvas": "^1.4.1",
+    "jsonwebtoken": "^9.0.2",
+    "jspdf": "^4.0.0",
+    "lucide-react": "^0.469.0",
+    "mongodb": "^6.21.0",
+    "mongoose": "^8.9.0",
+    "next": "16.1.6",
+    "openai": "^4.77.0",
+    "pdf-parse": "^1.1.1",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "react-dropzone": "^14.3.0",
+    "react-hot-toast": "^2.5.0",
+    "zustand": "^5.0.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "babel-plugin-react-compiler": "1.0.0",
+    "eslint": "^9",
+    "eslint-config-next": "16.1.6",
+    "tailwindcss": "^4"
+  }
+}
