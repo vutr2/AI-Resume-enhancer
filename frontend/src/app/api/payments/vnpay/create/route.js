@@ -57,7 +57,7 @@ function sortObject(obj) {
 }
 
 function getVNPayDate(date = new Date()) {
-  const vnTime = new Date(date.getTime(0 + 7 * 60 * 60 * 1000));
+  const vnTime = new Date(date.getTime() + 0 + 7 * 60 * 60 * 1000);
   return (
     vnTime.getFullYear().toString() +
     String(vnTime.getMonth() + 1).padStart(2, '0') +
@@ -127,7 +127,7 @@ export async function POST(request) {
     const vnp_CreateDate = getVNPayDate();
 
     // Expire date (15 minutes from now)
-    const expireDate = new Date(Date.now() + 15 * 60 * 1000);
+    const expireDate = new Date(Date.now() + 30 * 60 * 1000);
     const vnp_ExpireDate = getVNPayDate(expireDate);
 
     // Order info
