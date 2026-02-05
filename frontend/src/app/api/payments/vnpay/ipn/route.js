@@ -14,7 +14,7 @@ if (!VNPAY_HASH_SECRET) {
 
 /* ===================== UTILS ===================== */
 
-// sort key a-z
+// sort key A-Z
 function sortObject(obj) {
   return Object.keys(obj)
     .sort()
@@ -24,7 +24,7 @@ function sortObject(obj) {
     }, {});
 }
 
-// ✅ VERIFY SIGNATURE CHUẨN VNPay (KHÔNG encode)
+// ✅ VERIFY SIGNATURE CHUẨN VNPay (BẮT BUỘC encodeURIComponent)
 function verifyVNPaySignature(vnpParams, secureHash) {
   const cloned = { ...vnpParams };
   delete cloned.vnp_SecureHash;
@@ -33,12 +33,12 @@ function verifyVNPaySignature(vnpParams, secureHash) {
   const sorted = sortObject(cloned);
 
   const signData = Object.keys(sorted)
-    .map((key) => `${key}=${sorted[key]}`)
+    .map((key) => `${key}=${encodeURIComponent(sorted[key])}`)
     .join('&');
 
   const signed = crypto
     .createHmac('sha512', VNPAY_HASH_SECRET)
-    .update(Buffer.from(signData, 'utf-8'))
+    .update(signData, 'utf-8')
     .digest('hex');
 
   return signed === secureHash;
@@ -97,11 +97,13 @@ export async function GET(request) {
     /* 4️⃣ FIND PAYMENT (IDEMPOTENT) */
     const payment = await Payment.findOne({ orderId: txnRef });
 
+    // Không tìm thấy → vẫn ACK để VNPay không retry
     if (!payment) {
       console.log('[IPN] Payment not found:', txnRef);
       return vnpayResponse('00', 'Confirm Success');
     }
 
+    // Đã xử lý rồi → ACK
     if (payment.status === 'completed') {
       console.log('[IPN] Already processed:', txnRef);
       return vnpayResponse('00', 'Confirm Success');
@@ -128,6 +130,7 @@ export async function GET(request) {
         vnp_BankCode: vnpParams.vnp_BankCode,
         vnp_CardType: vnpParams.vnp_CardType,
       };
+
       await payment.save();
 
       // calculate expiration
@@ -140,7 +143,7 @@ export async function GET(request) {
         expiresAt.setMonth(expiresAt.getMonth() + 1);
       }
 
-      // update user
+      // update user plan
       await User.findByIdAndUpdate(payment.user, {
         plan: payment.plan,
         planExpiresAt: expiresAt,
