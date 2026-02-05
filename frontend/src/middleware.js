@@ -17,6 +17,7 @@ export default authMiddleware({
     '/api/payments/zalopay/callback',
     '/api/payments/vnpay/callback',
     '/api/auth/complete-profile',
+    '/api/payments/vnpay/ipn',
   ],
 
   // Redirect unauthenticated users to login
