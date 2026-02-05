@@ -24,16 +24,32 @@ function sortObject(obj) {
     }, {});
 }
 
-// ✅ VERIFY SIGNATURE CHUẨN VNPay (BẮT BUỘC encodeURIComponent)
-function verifyVNPaySignature(vnpParams, secureHash) {
-  const cloned = { ...vnpParams };
-  delete cloned.vnp_SecureHash;
-  delete cloned.vnp_SecureHashType;
+// ✅ VERIFY SIGNATURE - dùng raw query string để tránh decode/encode mismatch
+function verifyVNPaySignature(url, secureHash) {
+  const urlObj = new URL(url);
+  const queryString = urlObj.search.slice(1); // bỏ dấu ?
 
-  const sorted = sortObject(cloned);
+  // Parse raw params, giữ nguyên encoded values
+  const rawParams = {};
+  for (const pair of queryString.split('&')) {
+    const idx = pair.indexOf('=');
+    if (idx > -1) {
+      const key = pair.substring(0, idx);
+      const value = pair.substring(idx + 1);
+      if (key.startsWith('vnp_')) {
+        rawParams[key] = value;
+      }
+    }
+  }
 
+  delete rawParams['vnp_SecureHash'];
+  delete rawParams['vnp_SecureHashType'];
+
+  const sorted = sortObject(rawParams);
+
+  // Tạo sign string từ raw encoded values (giống VNPay tạo)
   const signData = Object.keys(sorted)
-    .map((key) => `${key}=${encodeURIComponent(sorted[key])}`)
+    .map((key) => `${key}=${sorted[key]}`)
     .join('&');
 
   const signed = crypto
@@ -84,7 +100,7 @@ export async function GET(request) {
     }
 
     /* 2️⃣ VERIFY SIGNATURE */
-    if (!verifyVNPaySignature(vnpParams, secureHash)) {
+    if (!verifyVNPaySignature(request.url, secureHash)) {
       console.error('[IPN] Invalid signature:', txnRef);
       return vnpayResponse('97', 'Invalid signature');
     }
