@@ -136,6 +136,16 @@ export const useAuthStore = create(
     {
       name: 'auth-storage',
       partialize: (state) => ({ user: state.user }),
+      storage: typeof window !== 'undefined'
+        ? {
+            getItem: (name) => {
+              const value = sessionStorage.getItem(name);
+              return value ? JSON.parse(value) : null;
+            },
+            setItem: (name, value) => sessionStorage.setItem(name, JSON.stringify(value)),
+            removeItem: (name) => sessionStorage.removeItem(name),
+          }
+        : undefined,
     }
   )
 );

@@ -18,9 +18,11 @@ import {
   CreditCard,
   Crown,
   Zap,
+  Lock,
 } from 'lucide-react';
 import { useResumeStore } from '@/store/useResumeStore';
 import { useAuthStore } from '@/store/useAuthStore';
+import toast from 'react-hot-toast';
 
 const mainMenuItems = [
   {
@@ -55,12 +57,16 @@ const toolItems = [
     label: 'Viết lại CV',
     icon: PenTool,
     tab: 'rewrite',
+    requiredFeature: 'rewriteCV',
+    upgradeMsg: 'Vui lòng nâng cấp lên gói Basic để sử dụng tính năng Viết lại CV.',
   },
   {
     id: 'match',
     label: 'So khớp JD',
     icon: Target,
     tab: 'match',
+    requiredFeature: 'matchJob',
+    upgradeMsg: 'Vui lòng nâng cấp lên gói Pro để sử dụng tính năng So khớp JD.',
   },
   {
     id: 'ats',
@@ -73,6 +79,8 @@ const toolItems = [
     label: 'Thư ứng tuyển',
     icon: Mail,
     tab: 'cover',
+    requiredFeature: 'coverLetter',
+    upgradeMsg: 'Vui lòng nâng cấp lên gói Pro để sử dụng tính năng Thư ứng tuyển.',
   },
 ];
 
@@ -171,15 +179,28 @@ export default function Sidebar({ activeTab, onTabChange, collapsed, onToggleCol
                 const Icon = item.icon;
                 const isActive = activeTab === item.tab;
                 const isDisabled = isTabDisabled(item.tab);
+                const isLocked = item.requiredFeature && !user?.features?.[item.requiredFeature];
+
+                const handleClick = () => {
+                  if (isDisabled) return;
+                  if (isLocked) {
+                    toast(item.upgradeMsg, {
+                      icon: '🔒',
+                      duration: 3000,
+                    });
+                    return;
+                  }
+                  onTabChange(item.tab);
+                };
 
                 return (
                   <li key={item.id}>
                     <button
-                      onClick={() => !isDisabled && onTabChange(item.tab)}
+                      onClick={handleClick}
                       disabled={isDisabled}
                       className={clsx(
                         'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors',
-                        isActive
+                        isActive && !isLocked
                           ? 'bg-[var(--primary)] text-white'
                           : isDisabled
                           ? 'text-[var(--foreground-muted)] cursor-not-allowed opacity-50'
@@ -191,6 +212,9 @@ export default function Sidebar({ activeTab, onTabChange, collapsed, onToggleCol
                       <Icon className="w-5 h-5 flex-shrink-0" />
                       {!collapsed && (
                         <span className="text-sm font-medium">{item.label}</span>
+                      )}
+                      {!collapsed && isLocked && (
+                        <Lock className="w-3.5 h-3.5 ml-auto text-[var(--foreground-muted)]" />
                       )}
                     </button>
                   </li>

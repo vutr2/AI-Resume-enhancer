@@ -544,8 +544,8 @@ export default function HelpPage() {
                 <div className="space-y-3">
                   {[
                     { plan: 'Miễn phí', time: 'Trong 24 giờ' },
-                    { plan: 'Pro', time: 'Trong 12 giờ' },
-                    { plan: 'Premium', time: 'Trong 2 giờ (Ưu tiên)' },
+                    { plan: 'Basic', time: 'Trong 12 giờ' },
+                    { plan: 'Pro', time: 'Trong 2 giờ (Ưu tiên)' },
                   ].map((item, index) => (
                     <div
                       key={index}
