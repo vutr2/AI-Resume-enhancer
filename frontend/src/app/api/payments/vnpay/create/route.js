@@ -50,9 +50,9 @@ function generateTxnRef() {
 function sortObject(obj) {
   const sorted = {};
   const keys = Object.keys(obj).sort();
-  for (const key of keys) {
-    sorted[key] = obj[key];
-  }
+  keys.forEach((key) => {
+    sorted[key] = encodeURIComponent(obj[key]).replace(/%20/g, '+');
+  });
   return sorted;
 }
 
@@ -153,14 +153,21 @@ export async function POST(request) {
     // Sort params and create signature
     vnp_Params = sortObject(vnp_Params);
 
-    const signData = new URLSearchParams(vnp_Params).toString();
+    const signData = Object.keys(vnp_Params)
+      .map((key) => `${key}=${vnp_Params[key]}`)
+      .join('&');
     const hmac = crypto.createHmac('sha512', VNPAY_CONFIG.vnp_HashSecret);
     const signed = hmac.update(Buffer.from(signData, 'utf-8')).digest('hex');
 
     vnp_Params['vnp_SecureHash'] = signed;
 
     // Create payment URL
-    const paymentUrl = `${VNPAY_CONFIG.vnp_Url}?${new URLSearchParams(vnp_Params).toString()}`;
+    const paymentUrl =
+      VNPAY_CONFIG.vnp_Url +
+      '?' +
+      Object.entries(vnp_Params)
+        .map(([key, value]) => `${key}=${value}`)
+        .join('&');
 
     console.log('VNPay order created:', {
       txnRef,
