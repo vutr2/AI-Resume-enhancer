@@ -74,8 +74,6 @@ function vnpayResponse(code, message) {
 /* ===================== IPN ===================== */
 
 export async function GET(request) {
-  console.log('🔥 VNPay IPN HIT:', request.url);
-
   try {
     const { searchParams } = new URL(request.url);
 
@@ -105,8 +103,6 @@ export async function GET(request) {
       return vnpayResponse('97', 'Invalid signature');
     }
 
-    console.log('[IPN] Valid signature:', txnRef);
-
     /* 3️⃣ CONNECT DB */
     await dbConnect();
 
@@ -115,13 +111,11 @@ export async function GET(request) {
 
     // Không tìm thấy → vẫn ACK để VNPay không retry
     if (!payment) {
-      console.log('[IPN] Payment not found:', txnRef);
       return vnpayResponse('00', 'Confirm Success');
     }
 
     // Đã xử lý rồi → ACK
     if (payment.status === 'completed') {
-      console.log('[IPN] Already processed:', txnRef);
       return vnpayResponse('00', 'Confirm Success');
     }
 
@@ -166,7 +160,6 @@ export async function GET(request) {
         updatedAt: now,
       });
 
-      console.log('[IPN] Payment completed:', txnRef);
       return vnpayResponse('00', 'Confirm Success');
     }
 
@@ -180,7 +173,6 @@ export async function GET(request) {
     };
     await payment.save();
 
-    console.log('[IPN] Payment failed:', txnRef, responseCode);
     return vnpayResponse('00', 'Confirm Success');
   } catch (err) {
     console.error('[VNPay IPN ERROR]', err);

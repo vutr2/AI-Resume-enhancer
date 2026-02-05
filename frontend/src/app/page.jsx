@@ -115,7 +115,7 @@ export default function HomePage() {
           </div>
 
           <p className="mt-6 text-sm text-[var(--foreground-muted)]">
-            10 lượt miễn phí. Không cần thẻ tín dụng.
+            5 lượt miễn phí. Không cần thẻ tín dụng.
           </p>
         </div>
       </section>
@@ -211,7 +211,7 @@ export default function HomePage() {
               Sẵn sàng tối ưu CV của bạn?
             </h2>
             <p className="text-lg opacity-90 mb-8">
-              Đăng ký miễn phí và nhận ngay 10 lượt sử dụng.
+              Đăng ký miễn phí và nhận ngay 5 lượt sử dụng.
             </p>
             <Link
               href="/register"

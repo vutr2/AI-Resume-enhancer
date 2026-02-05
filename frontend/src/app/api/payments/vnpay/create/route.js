@@ -169,13 +169,6 @@ export async function POST(request) {
         .map(([key, value]) => `${key}=${value}`)
         .join('&');
 
-    console.log('VNPay order created:', {
-      txnRef,
-      amount,
-      planId,
-      billingCycle,
-    });
-
     // Save payment record
     await Payment.create({
       user: dbUser._id,
