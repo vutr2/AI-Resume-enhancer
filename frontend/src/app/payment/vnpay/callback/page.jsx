@@ -35,8 +35,11 @@ function CallbackContent() {
 
   useEffect(() => {
     if (urlStatus === 'success') {
-      // Reload user profile to get updated plan
-      loadUserProfile();
+      // Đợi IPN xử lý xong rồi reload profile
+      const timer = setTimeout(() => {
+        loadUserProfile();
+      }, 2000);
+      return () => clearTimeout(timer);
     }
   }, [urlStatus, loadUserProfile]);
 
