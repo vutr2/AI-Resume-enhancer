@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, Suspense } from 'react';
+import { useEffect, useState, Suspense, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -20,30 +20,25 @@ function CallbackContent() {
   const searchParams = useSearchParams();
   const { loadUserProfile } = useAuthStore();
 
-  const [status, setStatus] = useState('loading');
-  const [message, setMessage] = useState('');
+  const urlStatus = searchParams.get('status');
+  const urlMessage = searchParams.get('message');
+
+  const status = urlStatus || 'loading';
+  const message =
+    urlStatus === 'success'
+      ? 'Thanh toán thành công! Tài khoản của bạn đã được nâng cấp.'
+      : urlStatus === 'failed'
+        ? urlMessage || 'Thanh toán thất bại. Vui lòng thử lại.'
+        : urlStatus === 'error'
+          ? urlMessage || 'Đã xảy ra lỗi. Vui lòng liên hệ hỗ trợ.'
+          : 'Đang xử lý kết quả thanh toán...';
 
   useEffect(() => {
-    const urlStatus = searchParams.get('status');
-    const urlMessage = searchParams.get('message');
-    const txnRef = searchParams.get('txnRef');
-
     if (urlStatus === 'success') {
-      setStatus('success');
-      setMessage('Thanh toán thành công! Tài khoản của bạn đã được nâng cấp.');
       // Reload user profile to get updated plan
       loadUserProfile();
-    } else if (urlStatus === 'failed') {
-      setStatus('failed');
-      setMessage(urlMessage || 'Thanh toán thất bại. Vui lòng thử lại.');
-    } else if (urlStatus === 'error') {
-      setStatus('error');
-      setMessage(urlMessage || 'Đã xảy ra lỗi. Vui lòng liên hệ hỗ trợ.');
-    } else {
-      setStatus('loading');
-      setMessage('Đang xử lý kết quả thanh toán...');
     }
-  }, [searchParams, loadUserProfile]);
+  }, [urlStatus, loadUserProfile]);
 
   return (
     <div className="min-h-screen bg-[var(--background)] flex items-center justify-center p-4">

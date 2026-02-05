@@ -21,7 +21,7 @@ export async function GET(request, { params }) {
     const resume = await Resume.findOne({
       _id: id,
       user: decoded.descopeId,
-    });
+    }).select('-rawText -versions');
 
     if (!resume) {
       return NextResponse.json(

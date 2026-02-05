@@ -14,7 +14,10 @@ const VNPAY_CONFIG = {
     'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html',
   vnp_ReturnUrl:
     process.env.VNPAY_RETURN_URL ||
-    `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3002'}/payment/vnpay/callback`,
+    `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3002'}/api/payments/vnpay/callback`,
+  vnp_IpnUrl:
+    process.env.VNPAY_IPN_URL ||
+    `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3002'}/api/payments/vnpay/ipn`,
 };
 
 // Plan prices in VND
@@ -43,12 +46,12 @@ function generateTxnRef() {
   return `RMX${timestamp}${random}`;
 }
 
-// Sort object keys and create query string
+// Sort object keys
 function sortObject(obj) {
   const sorted = {};
   const keys = Object.keys(obj).sort();
   for (const key of keys) {
-    sorted[key] = encodeURIComponent(obj[key]).replace(/%20/g, '+');
+    sorted[key] = obj[key];
   }
   return sorted;
 }
@@ -124,7 +127,7 @@ export async function POST(request) {
     const vnp_CreateDate = getVNPayDate();
 
     // Expire date (15 minutes from now)
-    const expireDate = new Date(Date.now() + 15 * 60 * 60 * 1000);
+    const expireDate = new Date(Date.now() + 15 * 60 * 1000);
     const vnp_ExpireDate = getVNPayDate(expireDate);
 
     // Order info

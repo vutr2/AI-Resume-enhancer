@@ -5,6 +5,7 @@ import { getCurrentUser } from '@/lib/auth';
 import { callOpenAI } from '@/lib/openai';
 import { checkCredits, consumeCredit } from '@/lib/credits';
 import { rateLimitMiddleware } from '@/lib/rateLimit';
+import { cachedAICall } from '@/lib/cache';
 
 // Combined system prompt for both parsing AND analyzing in one call
 const COMBINED_PROMPT = `Bạn là chuyên gia phân tích CV và ATS (Applicant Tracking System).
@@ -130,7 +131,7 @@ export async function POST(request) {
           code: creditCheck.code,
           data: {
             creditsRemaining: creditCheck.creditsRemaining,
-            isFirstMonth: creditCheck.isFirstMonth,
+            plan: creditCheck.plan,
           },
         },
         { status: creditCheck.status }
@@ -140,7 +141,10 @@ export async function POST(request) {
     await dbConnect();
 
     const body = await request.json();
-    const { resumeId, jobDescription } = body;
+    const { resumeId } = body;
+    const jobDescription = typeof body.jobDescription === 'string'
+      ? body.jobDescription.slice(0, 10000)
+      : body.jobDescription;
 
     if (!resumeId) {
       return NextResponse.json(
@@ -186,10 +190,13 @@ export async function POST(request) {
         content += `\n\nMô tả công việc đang ứng tuyển:\n${jobDescription}`;
       }
 
-      // Single AI call for both parsing and analyzing
-      const result = await callOpenAI(COMBINED_PROMPT, content, {
-        maxTokens: 6000, // Increase token limit for combined response
-      });
+      // Cached AI call - same CV text = same result from cache
+      const result = await cachedAICall(
+        resume.rawText,
+        'process',
+        jobDescription || '',
+        () => callOpenAI(COMBINED_PROMPT, content, { maxTokens: 6000 })
+      );
 
       console.log('AI Process result received');
 

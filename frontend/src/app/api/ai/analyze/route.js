@@ -3,6 +3,9 @@ import dbConnect from '@/lib/db';
 import Resume from '@/models/Resume';
 import { getCurrentUser } from '@/lib/auth';
 import { callOpenAI, SYSTEM_PROMPTS } from '@/lib/openai';
+import { rateLimitMiddleware } from '@/lib/rateLimit';
+
+const MAX_JOB_DESC_LENGTH = 10000;
 
 export async function POST(request) {
   try {
@@ -12,6 +15,14 @@ export async function POST(request) {
         { success: false, message: 'Vui lòng đăng nhập' },
         { status: 401 }
       );
+    }
+
+    const rateLimitResult = rateLimitMiddleware(request, decoded.descopeId, 'ai');
+    if (rateLimitResult.limited) {
+      return NextResponse.json(rateLimitResult.response, {
+        status: rateLimitResult.status,
+        headers: rateLimitResult.headers,
+      });
     }
 
     await dbConnect();
@@ -59,7 +70,8 @@ export async function POST(request) {
       analysisContent += `Parsed Data:\n${JSON.stringify(resume.parsedData, null, 2)}\n\n`;
     }
     if (jobDescription) {
-      analysisContent += `Job Description:\n${jobDescription}\n\n`;
+      const trimmedJD = typeof jobDescription === 'string' ? jobDescription.slice(0, MAX_JOB_DESC_LENGTH) : '';
+      analysisContent += `Job Description:\n${trimmedJD}\n\n`;
     }
 
     console.log('Analyzing CV with content length:', resume.rawText.length, 'chars');

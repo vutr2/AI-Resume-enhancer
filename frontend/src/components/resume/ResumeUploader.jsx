@@ -23,9 +23,9 @@ export default function ResumeUploader({ onUpload, isLoading = false }) {
   const { user } = useAuthStore();
 
   // Tính số credits còn lại
-  const creditsRemaining = user?.creditsRemaining ?? (user?.isFirstMonth !== false ? 10 : 3);
-  const maxCredits = user?.isFirstMonth !== false ? 10 : 3;
-  const isUnlimited = creditsRemaining === -1;
+  const creditsRemaining = user?.creditsRemaining ?? 0;
+  const maxCredits = user?.maxCredits ?? 5;
+  const isUnlimited = user?.isUnlimited || creditsRemaining === -1;
 
   const onDrop = useCallback((acceptedFiles, rejectedFiles) => {
     setError('');
@@ -229,7 +229,8 @@ export default function ResumeUploader({ onUpload, isLoading = false }) {
       <OutOfCreditsModal
         isOpen={showOutOfCreditsModal}
         onClose={() => setShowOutOfCreditsModal(false)}
-        isFirstMonth={user?.isFirstMonth !== false}
+        maxCredits={maxCredits}
+        plan={user?.plan}
       />
     </div>
   );

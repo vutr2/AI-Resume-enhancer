@@ -36,10 +36,6 @@ const userSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
-    credits: {
-      type: Number,
-      default: 10, // Tháng đầu được 10 lượt miễn phí
-    },
     // Theo dõi lượt sử dụng theo tháng
     monthlyCreditsUsed: {
       type: Number,
@@ -49,11 +45,6 @@ const userSchema = new mongoose.Schema(
     currentBillingMonth: {
       type: String,
       default: null,
-    },
-    // Đánh dấu user đã hết tháng đầu chưa
-    isFirstMonth: {
-      type: Boolean,
-      default: true,
     },
     isEmailVerified: {
       type: Boolean,
@@ -102,60 +93,59 @@ userSchema.methods.isPlanActive = function () {
   return new Date() < this.planExpiresAt;
 };
 
-// Get plan limits
+// Get plan limits - uses centralized plan config
 userSchema.methods.getPlanLimits = function () {
+  // Import dynamically to avoid circular deps in model file
+  // For atomic credit operations, use lib/credits.js instead
   const limits = {
-    free: { resumesPerMonth: 3, aiRewritesPerMonth: 5, atsChecksPerMonth: 5 },
-    basic: { resumesPerMonth: 10, aiRewritesPerMonth: 20, atsChecksPerMonth: 20 },
-    pro: { resumesPerMonth: -1, aiRewritesPerMonth: -1, atsChecksPerMonth: -1 },
-    enterprise: { resumesPerMonth: -1, aiRewritesPerMonth: -1, atsChecksPerMonth: -1 },
+    free: { resumesPerMonth: 3, aiCreditsPerMonth: 5 },
+    basic: { resumesPerMonth: 10, aiCreditsPerMonth: 20 },
+    pro: { resumesPerMonth: -1, aiCreditsPerMonth: -1 },
+    enterprise: { resumesPerMonth: -1, aiCreditsPerMonth: -1 },
   };
-  return limits[this.plan] || limits.free;
+  const planKey = this.isPlanActive() ? (this.plan || 'free') : 'free';
+  return limits[planKey] || limits.free;
 };
 
 // Lấy số credits còn lại trong tháng
 userSchema.methods.getMonthlyCredits = function () {
-  const currentMonth = new Date().toISOString().slice(0, 7); // "2024-01"
+  const currentMonth = new Date().toISOString().slice(0, 7);
+  const planLimits = this.getPlanLimits();
+  const maxCredits = planLimits.aiCreditsPerMonth;
+
+  // Unlimited plan
+  if (maxCredits === -1) return -1;
 
   // Nếu là tháng mới, reset credits
   if (this.currentBillingMonth !== currentMonth) {
-    return this.isFirstMonth ? 10 : 3;
+    return maxCredits;
   }
 
-  // Tính credits còn lại
-  const maxCredits = this.isFirstMonth ? 10 : 3;
-  return Math.max(0, maxCredits - this.monthlyCreditsUsed);
+  return Math.max(0, maxCredits - (this.monthlyCreditsUsed || 0));
 };
 
 // Kiểm tra có thể sử dụng credit không
 userSchema.methods.canUseCredit = function () {
-  // User trả phí không giới hạn
-  if (['basic', 'pro', 'enterprise'].includes(this.plan) && this.isPlanActive()) {
-    return true;
-  }
-  return this.getMonthlyCredits() > 0;
+  const credits = this.getMonthlyCredits();
+  return credits === -1 || credits > 0;
 };
 
 // Sử dụng 1 credit
+// NOTE: For production use, prefer atomicConsumeCredit() from lib/credits.js
+// This method is NOT atomic and can have race conditions
 userSchema.methods.useCredit = async function () {
   const currentMonth = new Date().toISOString().slice(0, 7);
+  const planLimits = this.getPlanLimits();
+  const maxCredits = planLimits.aiCreditsPerMonth;
 
-  // User trả phí không cần trừ credit
-  if (['basic', 'pro', 'enterprise'].includes(this.plan) && this.isPlanActive()) {
-    return true;
-  }
+  // Unlimited plan - no credit consumed
+  if (maxCredits === -1) return true;
 
-  // Nếu sang tháng mới, reset và kiểm tra isFirstMonth
+  // Nếu sang tháng mới, reset
   if (this.currentBillingMonth !== currentMonth) {
-    // Nếu đã có billing month trước đó => không còn first month
-    if (this.currentBillingMonth !== null) {
-      this.isFirstMonth = false;
-    }
     this.currentBillingMonth = currentMonth;
     this.monthlyCreditsUsed = 0;
   }
-
-  const maxCredits = this.isFirstMonth ? 10 : 3;
 
   if (this.monthlyCreditsUsed >= maxCredits) {
     return false; // Hết lượt
@@ -165,6 +155,10 @@ userSchema.methods.useCredit = async function () {
   await this.save();
   return true;
 };
+
+// Indexes for performance
+userSchema.index({ descopeId: 1 }, { sparse: true });
+userSchema.index({ plan: 1, planExpiresAt: 1 });
 
 const User = mongoose.models.User || mongoose.model('User', userSchema);
 

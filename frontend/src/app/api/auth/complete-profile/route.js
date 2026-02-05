@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import clientPromise from '@/lib/mongodb-client';
+import { getDb } from '@/lib/db';
 import { getCurrentUser } from '@/lib/auth';
 
 // POST /api/auth/complete-profile
@@ -17,8 +17,7 @@ export async function POST(request) {
     const body = await request.json();
     const { name, phone, location, jobTitle, experience, industry, onboardingCompleted } = body;
 
-    const client = await clientPromise;
-    const db = client.db();
+    const db = await getDb();
 
     const updateData = {
       updatedAt: new Date(),

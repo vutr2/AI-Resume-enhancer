@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
-import dbConnect from '@/lib/db';
+import dbConnect, { getDb } from '@/lib/db';
 import Resume from '@/models/Resume';
 import CoverLetter from '@/models/CoverLetter';
 import { getCurrentUser } from '@/lib/auth';
 import { callOpenAI, SYSTEM_PROMPTS } from '@/lib/openai';
 import { checkCredits, consumeCredit } from '@/lib/credits';
 import { rateLimitMiddleware } from '@/lib/rateLimit';
+import { hasFeature } from '@/lib/plans';
 
 export async function POST(request) {
   try {
@@ -26,6 +27,26 @@ export async function POST(request) {
       });
     }
 
+    // Feature gate: coverLetter requires Pro plan
+    const db = await getDb();
+    const featureUser = await db.collection('users').findOne({
+      $or: [
+        { descopeId: decoded.descopeId },
+        { email: decoded.email?.toLowerCase() }
+      ]
+    });
+
+    if (!featureUser || !hasFeature(featureUser, 'coverLetter')) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: 'Tính năng tạo thư ứng tuyển yêu cầu gói Pro. Vui lòng nâng cấp.',
+          code: 'FEATURE_LOCKED',
+        },
+        { status: 403 }
+      );
+    }
+
     // Kiểm tra credits trước khi xử lý
     const creditCheck = await checkCredits();
     if (!creditCheck.success) {
@@ -36,7 +57,6 @@ export async function POST(request) {
           code: creditCheck.code,
           data: {
             creditsRemaining: creditCheck.creditsRemaining,
-            isFirstMonth: creditCheck.isFirstMonth,
           },
         },
         { status: creditCheck.status }

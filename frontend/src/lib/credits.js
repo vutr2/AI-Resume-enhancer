@@ -1,23 +1,21 @@
-import clientPromise from '@/lib/mongodb-client';
+import { getDb } from '@/lib/db';
 import { getCurrentUser } from '@/lib/auth';
+import { getUserPlan, getMaxAICredits } from '@/lib/plans';
 
-// Tính số credits còn lại trong tháng
+/**
+ * Calculate remaining AI credits for a user
+ */
 export function calculateCreditsRemaining(user, currentMonth = null) {
   if (!currentMonth) {
     currentMonth = new Date().toISOString().slice(0, 7);
   }
 
-  // User trả phí => không giới hạn
-  if (['basic', 'pro', 'enterprise'].includes(user.plan)) {
-    const planExpiresAt = user.planExpiresAt ? new Date(user.planExpiresAt) : null;
-    if (planExpiresAt && new Date() < planExpiresAt) {
-      return -1; // -1 = unlimited
-    }
-  }
+  const maxCredits = getMaxAICredits(user);
 
-  const isFirstMonth = user.isFirstMonth !== false;
-  const maxCredits = isFirstMonth ? 10 : 3;
+  // Unlimited plan
+  if (maxCredits === -1) return -1;
 
+  // New month = full reset
   if (user.currentBillingMonth !== currentMonth) {
     return maxCredits;
   }
@@ -25,7 +23,9 @@ export function calculateCreditsRemaining(user, currentMonth = null) {
   return Math.max(0, maxCredits - (user.monthlyCreditsUsed || 0));
 }
 
-// Kiểm tra user có thể sử dụng credit không
+/**
+ * Check if user can use an AI credit
+ */
 export async function checkCredits() {
   const descopeUser = await getCurrentUser();
   if (!descopeUser) {
@@ -36,8 +36,7 @@ export async function checkCredits() {
     };
   }
 
-  const client = await clientPromise;
-  const db = client.db();
+  const db = await getDb();
 
   const user = await db.collection('users').findOne({
     $or: [
@@ -54,19 +53,18 @@ export async function checkCredits() {
     };
   }
 
+  const plan = getUserPlan(user);
   const creditsRemaining = calculateCreditsRemaining(user);
-  const isFirstMonth = user.isFirstMonth !== false;
 
   if (creditsRemaining === 0) {
     return {
       success: false,
-      error: isFirstMonth
-        ? 'Bạn đã sử dụng hết 10 lượt miễn phí trong tháng đầu tiên. Vui lòng nâng cấp để tiếp tục.'
-        : 'Bạn đã sử dụng hết 3 lượt miễn phí trong tháng. Vui lòng nâng cấp để tiếp tục.',
+      error: `Bạn đã sử dụng hết ${plan.monthlyAICredits} lượt AI trong tháng. Vui lòng nâng cấp để tiếp tục.`,
       code: 'OUT_OF_CREDITS',
       status: 403,
       creditsRemaining: 0,
-      isFirstMonth,
+      maxCredits: plan.monthlyAICredits,
+      plan: plan.planKey,
     };
   }
 
@@ -74,47 +72,36 @@ export async function checkCredits() {
     success: true,
     user,
     creditsRemaining,
-    isFirstMonth,
+    maxCredits: plan.monthlyAICredits,
     isUnlimited: creditsRemaining === -1,
+    plan: plan.planKey,
   };
 }
 
 /**
  * Atomic credit consumption - prevents race conditions
- * Uses MongoDB findOneAndUpdate with conditions to ensure
- * credits are only consumed if available
  */
 export async function consumeCredit(userId) {
-  const client = await clientPromise;
-  const db = client.db();
+  const db = await getDb();
   const currentMonth = new Date().toISOString().slice(0, 7);
 
-  // First check if user is premium (no credit needed)
   const user = await db.collection('users').findOne({ _id: userId });
   if (!user) {
     return { success: false, error: 'User not found' };
   }
 
-  // Premium users - no credit consumed
-  if (['basic', 'pro', 'enterprise'].includes(user.plan)) {
-    const planExpiresAt = user.planExpiresAt ? new Date(user.planExpiresAt) : null;
-    if (planExpiresAt && new Date() < planExpiresAt) {
-      return { success: true, creditsRemaining: -1 };
-    }
-  }
+  const maxCredits = getMaxAICredits(user);
 
-  const isFirstMonth = user.isFirstMonth !== false;
-  const maxCredits = isFirstMonth ? 10 : 3;
+  // Unlimited plan - no credit consumed
+  if (maxCredits === -1) {
+    return { success: true, creditsRemaining: -1 };
+  }
 
   // CASE 1: New month - reset and consume atomically
   if (user.currentBillingMonth !== currentMonth) {
-    const newIsFirstMonth = user.currentBillingMonth !== null ? false : true;
-    const newMaxCredits = newIsFirstMonth ? 10 : 3;
-
     const result = await db.collection('users').findOneAndUpdate(
       {
         _id: userId,
-        // Only update if still the old month (another request hasn't reset yet)
         $or: [
           { currentBillingMonth: { $ne: currentMonth } },
           { currentBillingMonth: null },
@@ -124,25 +111,20 @@ export async function consumeCredit(userId) {
         $set: {
           currentBillingMonth: currentMonth,
           monthlyCreditsUsed: 1,
-          isFirstMonth: newIsFirstMonth,
           updatedAt: new Date(),
         },
       },
       { returnDocument: 'after' }
     );
 
-    // If update matched, we successfully reset + consumed
     if (result) {
       return {
         success: true,
-        creditsRemaining: newMaxCredits - 1,
-        maxCredits: newMaxCredits,
-        isFirstMonth: newIsFirstMonth,
+        creditsRemaining: maxCredits - 1,
+        maxCredits,
       };
     }
-
-    // If no match, another request already reset this month
-    // Fall through to CASE 2
+    // Fall through - another request already reset
   }
 
   // CASE 2: Same month - atomic increment with limit check
@@ -150,7 +132,7 @@ export async function consumeCredit(userId) {
     {
       _id: userId,
       currentBillingMonth: currentMonth,
-      monthlyCreditsUsed: { $lt: maxCredits }, // Only if under limit
+      monthlyCreditsUsed: { $lt: maxCredits },
     },
     {
       $inc: { monthlyCreditsUsed: 1 },
@@ -160,13 +142,11 @@ export async function consumeCredit(userId) {
   );
 
   if (!result) {
-    // User has hit the limit - race condition prevented
     return {
       success: false,
       error: 'Hết lượt sử dụng',
       creditsRemaining: 0,
       maxCredits,
-      isFirstMonth,
     };
   }
 
@@ -174,14 +154,11 @@ export async function consumeCredit(userId) {
     success: true,
     creditsRemaining: maxCredits - result.monthlyCreditsUsed,
     maxCredits,
-    isFirstMonth,
   };
 }
 
 /**
  * Atomic check-and-consume in one operation
- * Combines checkCredits + consumeCredit to eliminate
- * the race condition window between check and consume
  */
 export async function atomicConsumeCredit() {
   const descopeUser = await getCurrentUser();
@@ -193,8 +170,7 @@ export async function atomicConsumeCredit() {
     };
   }
 
-  const client = await clientPromise;
-  const db = client.db();
+  const db = await getDb();
   const currentMonth = new Date().toISOString().slice(0, 7);
 
   const user = await db.collection('users').findOne({
@@ -212,28 +188,22 @@ export async function atomicConsumeCredit() {
     };
   }
 
-  // Premium users - unlimited
-  if (['basic', 'pro', 'enterprise'].includes(user.plan)) {
-    const planExpiresAt = user.planExpiresAt ? new Date(user.planExpiresAt) : null;
-    if (planExpiresAt && new Date() < planExpiresAt) {
-      return {
-        success: true,
-        user,
-        creditsRemaining: -1,
-        isUnlimited: true,
-        isFirstMonth: user.isFirstMonth !== false,
-      };
-    }
-  }
+  const plan = getUserPlan(user);
+  const maxCredits = plan.monthlyAICredits;
 
-  const isFirstMonth = user.isFirstMonth !== false;
-  const maxCredits = isFirstMonth ? 10 : 3;
+  // Unlimited plan
+  if (maxCredits === -1) {
+    return {
+      success: true,
+      user,
+      creditsRemaining: -1,
+      isUnlimited: true,
+      plan: plan.planKey,
+    };
+  }
 
   // New month - reset + consume atomically
   if (user.currentBillingMonth !== currentMonth) {
-    const newIsFirstMonth = user.currentBillingMonth !== null ? false : true;
-    const newMaxCredits = newIsFirstMonth ? 10 : 3;
-
     const result = await db.collection('users').findOneAndUpdate(
       {
         _id: user._id,
@@ -246,7 +216,6 @@ export async function atomicConsumeCredit() {
         $set: {
           currentBillingMonth: currentMonth,
           monthlyCreditsUsed: 1,
-          isFirstMonth: newIsFirstMonth,
           updatedAt: new Date(),
         },
       },
@@ -257,10 +226,10 @@ export async function atomicConsumeCredit() {
       return {
         success: true,
         user: result,
-        creditsRemaining: newMaxCredits - 1,
-        maxCredits: newMaxCredits,
-        isFirstMonth: newIsFirstMonth,
+        creditsRemaining: maxCredits - 1,
+        maxCredits,
         isUnlimited: false,
+        plan: plan.planKey,
       };
     }
   }
@@ -282,13 +251,11 @@ export async function atomicConsumeCredit() {
   if (!result) {
     return {
       success: false,
-      error: isFirstMonth
-        ? 'Bạn đã sử dụng hết 10 lượt miễn phí trong tháng đầu tiên. Vui lòng nâng cấp để tiếp tục.'
-        : 'Bạn đã sử dụng hết 3 lượt miễn phí trong tháng. Vui lòng nâng cấp để tiếp tục.',
+      error: `Bạn đã sử dụng hết ${maxCredits} lượt AI trong tháng. Vui lòng nâng cấp để tiếp tục.`,
       code: 'OUT_OF_CREDITS',
       status: 403,
       creditsRemaining: 0,
-      isFirstMonth,
+      plan: plan.planKey,
     };
   }
 
@@ -297,7 +264,7 @@ export async function atomicConsumeCredit() {
     user: result,
     creditsRemaining: maxCredits - result.monthlyCreditsUsed,
     maxCredits,
-    isFirstMonth,
     isUnlimited: false,
+    plan: plan.planKey,
   };
 }

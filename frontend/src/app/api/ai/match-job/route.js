@@ -1,8 +1,12 @@
 import { NextResponse } from 'next/server';
-import dbConnect from '@/lib/db';
+import dbConnect, { getDb } from '@/lib/db';
 import Resume from '@/models/Resume';
 import { getCurrentUser } from '@/lib/auth';
 import { callOpenAI, SYSTEM_PROMPTS } from '@/lib/openai';
+import { rateLimitMiddleware } from '@/lib/rateLimit';
+import { hasFeature } from '@/lib/plans';
+
+const MAX_JOB_DESC_LENGTH = 10000;
 
 export async function POST(request) {
   try {
@@ -14,10 +18,41 @@ export async function POST(request) {
       );
     }
 
+    const rateLimitResult = rateLimitMiddleware(request, decoded.descopeId, 'ai');
+    if (rateLimitResult.limited) {
+      return NextResponse.json(rateLimitResult.response, {
+        status: rateLimitResult.status,
+        headers: rateLimitResult.headers,
+      });
+    }
+
     await dbConnect();
 
+    // Feature gate: matchJob requires Pro plan
+    const db = await getDb();
+    const featureUser = await db.collection('users').findOne({
+      $or: [
+        { descopeId: decoded.descopeId },
+        { email: decoded.email?.toLowerCase() }
+      ]
+    });
+
+    if (!featureUser || !hasFeature(featureUser, 'matchJob')) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: 'Tính năng so khớp JD yêu cầu gói Pro. Vui lòng nâng cấp.',
+          code: 'FEATURE_LOCKED',
+        },
+        { status: 403 }
+      );
+    }
+
     const body = await request.json();
-    const { resumeId, jobDescription, jobTitle, companyName } = body;
+    const { resumeId, jobTitle, companyName } = body;
+    const jobDescription = typeof body.jobDescription === 'string'
+      ? body.jobDescription.slice(0, MAX_JOB_DESC_LENGTH)
+      : body.jobDescription;
 
     if (!resumeId || !jobDescription) {
       return NextResponse.json(

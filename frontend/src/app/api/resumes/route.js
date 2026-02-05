@@ -17,8 +17,8 @@ export async function GET(request) {
     await dbConnect();
 
     const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get('page')) || 1;
-    const limit = parseInt(searchParams.get('limit')) || 10;
+    const page = Math.max(1, parseInt(searchParams.get('page')) || 1);
+    const limit = Math.min(Math.max(1, parseInt(searchParams.get('limit')) || 10), 50);
     const sort = searchParams.get('sort') || '-updatedAt';
     const search = searchParams.get('search') || '';
     const status = searchParams.get('status');

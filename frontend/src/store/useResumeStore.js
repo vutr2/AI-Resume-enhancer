@@ -1,6 +1,11 @@
 import { create } from 'zustand';
 import api from '@/lib/api';
 
+// Limits to prevent unbounded memory growth
+const MAX_RESUMES = 50;
+const MAX_JOB_MATCHES = 20;
+const MAX_COVER_LETTERS = 20;
+
 export const useResumeStore = create((set, get) => ({
   // State
   currentResume: null,
@@ -54,7 +59,7 @@ export const useResumeStore = create((set, get) => ({
 
         set((state) => ({
           currentResume: resume,
-          resumes: [resume, ...state.resumes],
+          resumes: [resume, ...state.resumes].slice(0, MAX_RESUMES),
           isUploading: false,
         }));
 
@@ -296,7 +301,7 @@ export const useResumeStore = create((set, get) => ({
         const jobMatch = response.data;
         set((state) => ({
           currentJobMatch: jobMatch,
-          jobMatches: [jobMatch, ...state.jobMatches],
+          jobMatches: [jobMatch, ...state.jobMatches].slice(0, MAX_JOB_MATCHES),
           isLoading: false,
         }));
         return { success: true, jobMatch };
@@ -319,7 +324,7 @@ export const useResumeStore = create((set, get) => ({
         const coverLetter = response.data.coverLetter;
         const creditsRemaining = response.data.creditsRemaining;
         set((state) => ({
-          coverLetters: [coverLetter, ...state.coverLetters],
+          coverLetters: [coverLetter, ...state.coverLetters].slice(0, MAX_COVER_LETTERS),
           isLoading: false,
         }));
 

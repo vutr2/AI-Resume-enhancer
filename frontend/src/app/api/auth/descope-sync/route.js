@@ -1,10 +1,21 @@
 import { NextResponse } from 'next/server';
-import clientPromise from '@/lib/mongodb-client';
+import { getDb } from '@/lib/db';
+import { getCurrentUser } from '@/lib/auth';
+import { getUserPlan } from '@/lib/plans';
 
 // POST /api/auth/descope-sync
 // Sync Descope user with our MongoDB database
 export async function POST(request) {
   try {
+    // Validate Descope session
+    const descopeUser = await getCurrentUser();
+    if (!descopeUser) {
+      return NextResponse.json(
+        { success: false, message: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
     const { userId, email, name, image } = await request.json();
 
     if (!userId || !email) {
@@ -14,8 +25,15 @@ export async function POST(request) {
       );
     }
 
-    const client = await clientPromise;
-    const db = client.db();
+    // Ensure request matches the authenticated session
+    if (userId !== descopeUser.descopeId) {
+      return NextResponse.json(
+        { success: false, message: 'User ID mismatch' },
+        { status: 403 }
+      );
+    }
+
+    const db = await getDb();
     const usersCollection = db.collection('users');
 
     // Check if user exists
@@ -67,7 +85,8 @@ export async function POST(request) {
         name: name || email.split('@')[0],
         image: image || null,
         plan: 'free',
-        credits: 5,
+        monthlyCreditsUsed: 0,
+        currentBillingMonth: null,
         onboardingCompleted: false,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -81,6 +100,8 @@ export async function POST(request) {
     // Only new users (created with onboardingCompleted: false) need onboarding
     const onboardingCompleted = user.onboardingCompleted === undefined ? true : user.onboardingCompleted;
 
+    const plan = getUserPlan(user);
+
     return NextResponse.json({
       success: true,
       data: {
@@ -90,8 +111,8 @@ export async function POST(request) {
           email: user.email,
           name: user.name,
           image: user.image,
-          plan: user.plan,
-          credits: user.credits,
+          plan: plan.planKey,
+          features: plan.features,
           onboardingCompleted,
         },
         isNewUser,

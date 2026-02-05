@@ -273,22 +273,21 @@ export default function Sidebar({ activeTab, onTabChange, collapsed, onToggleCol
                     Lượt sử dụng
                   </span>
                 </div>
-                {user.creditsRemaining === -1 ? (
+                {user.isUnlimited || user.creditsRemaining === -1 ? (
                   <span className="text-xs font-semibold text-emerald-500">Không giới hạn</span>
                 ) : (
                   <span className="text-xs font-semibold text-[var(--foreground)]">
-                    {user.creditsRemaining ?? (user.isFirstMonth !== false ? 10 : 3)}/
-                    {user.isFirstMonth !== false ? 10 : 3}
+                    {user.creditsRemaining ?? 0}/{user.maxCredits ?? 5}
                   </span>
                 )}
               </div>
-              {user.creditsRemaining !== -1 && (
+              {!user.isUnlimited && user.creditsRemaining !== -1 && (
                 <>
                   <div className="h-2 bg-[var(--border)] rounded-full overflow-hidden">
                     <div
                       className={clsx(
                         'h-full rounded-full transition-all',
-                        (user.creditsRemaining ?? (user.isFirstMonth !== false ? 10 : 3)) > 3
+                        (user.creditsRemaining ?? 0) > 3
                           ? 'bg-emerald-500'
                           : (user.creditsRemaining ?? 0) > 1
                           ? 'bg-amber-500'
@@ -296,17 +295,15 @@ export default function Sidebar({ activeTab, onTabChange, collapsed, onToggleCol
                       )}
                       style={{
                         width: `${
-                          ((user.creditsRemaining ?? (user.isFirstMonth !== false ? 10 : 3)) /
-                            (user.isFirstMonth !== false ? 10 : 3)) *
+                          ((user.creditsRemaining ?? 0) /
+                            (user.maxCredits ?? 5)) *
                           100
                         }%`,
                       }}
                     />
                   </div>
                   <p className="mt-2 text-xs text-[var(--foreground-muted)]">
-                    {user.isFirstMonth !== false
-                      ? 'Tháng đầu: 10 lượt miễn phí'
-                      : 'Gói miễn phí: 3 lượt/tháng'}
+                    Gói {user.plan === 'basic' ? 'Basic' : user.plan === 'pro' ? 'Pro' : 'Miễn phí'}: {user.maxCredits ?? 5} lượt/tháng
                   </p>
                 </>
               )}

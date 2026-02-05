@@ -3,8 +3,10 @@
 import { X, Zap, Crown, Check } from 'lucide-react';
 import Link from 'next/link';
 
-export default function OutOfCreditsModal({ isOpen, onClose, isFirstMonth }) {
+export default function OutOfCreditsModal({ isOpen, onClose, maxCredits, plan }) {
   if (!isOpen) return null;
+
+  const planName = plan === 'basic' ? 'Basic' : plan === 'pro' ? 'Pro' : 'Miễn phí';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -30,12 +32,10 @@ export default function OutOfCreditsModal({ isOpen, onClose, isFirstMonth }) {
           </div>
 
           <h2 className="text-2xl font-bold mb-2">
-            {isFirstMonth ? 'Hết 10 lượt miễn phí!' : 'Hết lượt sử dụng!'}
+            Hết lượt sử dụng!
           </h2>
           <p className="text-white/90">
-            {isFirstMonth
-              ? 'Bạn đã sử dụng hết 10 lượt miễn phí trong tháng đầu tiên.'
-              : 'Bạn đã sử dụng hết 3 lượt miễn phí trong tháng này.'}
+            Bạn đã sử dụng hết {maxCredits} lượt AI trong tháng (gói {planName}).
           </p>
         </div>
 

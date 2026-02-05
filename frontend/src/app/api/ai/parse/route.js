@@ -3,6 +3,7 @@ import dbConnect from '@/lib/db';
 import Resume from '@/models/Resume';
 import { getCurrentUser } from '@/lib/auth';
 import { callOpenAI, SYSTEM_PROMPTS } from '@/lib/openai';
+import { rateLimitMiddleware } from '@/lib/rateLimit';
 
 export async function POST(request) {
   try {
@@ -12,6 +13,14 @@ export async function POST(request) {
         { success: false, message: 'Vui lòng đăng nhập' },
         { status: 401 }
       );
+    }
+
+    const rateLimitResult = rateLimitMiddleware(request, decoded.descopeId, 'ai');
+    if (rateLimitResult.limited) {
+      return NextResponse.json(rateLimitResult.response, {
+        status: rateLimitResult.status,
+        headers: rateLimitResult.headers,
+      });
     }
 
     await dbConnect();

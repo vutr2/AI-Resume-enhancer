@@ -1,28 +1,8 @@
 import { NextResponse } from 'next/server';
-import clientPromise from '@/lib/mongodb-client';
+import { getDb } from '@/lib/db';
 import { getCurrentUser } from '@/lib/auth';
-
-// Tính số credits còn lại trong tháng
-function calculateCreditsRemaining(user) {
-  // User trả phí => không giới hạn
-  if (['basic', 'pro', 'enterprise'].includes(user.plan)) {
-    const planExpiresAt = user.planExpiresAt ? new Date(user.planExpiresAt) : null;
-    if (planExpiresAt && new Date() < planExpiresAt) {
-      return -1; // -1 = unlimited
-    }
-  }
-
-  const currentMonth = new Date().toISOString().slice(0, 7); // "2024-01"
-  const isFirstMonth = user.isFirstMonth !== false;
-  const maxCredits = isFirstMonth ? 10 : 3;
-
-  // Nếu là tháng mới, reset
-  if (user.currentBillingMonth !== currentMonth) {
-    return maxCredits;
-  }
-
-  return Math.max(0, maxCredits - (user.monthlyCreditsUsed || 0));
-}
+import { calculateCreditsRemaining } from '@/lib/credits';
+import { getUserPlan } from '@/lib/plans';
 
 export async function GET() {
   try {
@@ -34,8 +14,7 @@ export async function GET() {
       );
     }
 
-    const client = await clientPromise;
-    const db = client.db();
+    const db = await getDb();
 
     // Find user by Descope ID or email
     const user = await db.collection('users').findOne({
@@ -51,6 +30,9 @@ export async function GET() {
         { status: 404 }
       );
     }
+
+    const plan = getUserPlan(user);
+    const creditsRemaining = calculateCreditsRemaining(user);
 
     return NextResponse.json(
       {
@@ -69,13 +51,14 @@ export async function GET() {
             experience: user.experience,
             industry: user.industry,
             bio: user.bio,
-            plan: user.plan || 'free',
+            plan: plan.planKey,
             planExpiresAt: user.planExpiresAt,
-            credits: user.credits ?? 10,
+            maxCredits: plan.monthlyAICredits,
             monthlyCreditsUsed: user.monthlyCreditsUsed || 0,
             currentBillingMonth: user.currentBillingMonth,
-            isFirstMonth: user.isFirstMonth !== false,
-            creditsRemaining: calculateCreditsRemaining(user),
+            creditsRemaining,
+            isUnlimited: creditsRemaining === -1,
+            features: plan.features,
             onboardingCompleted: user.onboardingCompleted,
             createdAt: user.createdAt,
           },
@@ -102,8 +85,7 @@ export async function PUT(request) {
       );
     }
 
-    const client = await clientPromise;
-    const db = client.db();
+    const db = await getDb();
 
     const body = await request.json();
     const { name, image, phone, location, title, jobTitle, experience, industry, bio } = body;
@@ -139,6 +121,9 @@ export async function PUT(request) {
       );
     }
 
+    const updatedPlan = getUserPlan(user);
+    const updatedCreditsRemaining = calculateCreditsRemaining(user);
+
     return NextResponse.json(
       {
         success: true,
@@ -157,13 +142,14 @@ export async function PUT(request) {
             experience: user.experience,
             industry: user.industry,
             bio: user.bio,
-            plan: user.plan || 'free',
+            plan: updatedPlan.planKey,
             planExpiresAt: user.planExpiresAt,
-            credits: user.credits ?? 10,
+            maxCredits: updatedPlan.monthlyAICredits,
             monthlyCreditsUsed: user.monthlyCreditsUsed || 0,
             currentBillingMonth: user.currentBillingMonth,
-            isFirstMonth: user.isFirstMonth !== false,
-            creditsRemaining: calculateCreditsRemaining(user),
+            creditsRemaining: updatedCreditsRemaining,
+            isUnlimited: updatedCreditsRemaining === -1,
+            features: updatedPlan.features,
             onboardingCompleted: user.onboardingCompleted,
             createdAt: user.createdAt,
           },

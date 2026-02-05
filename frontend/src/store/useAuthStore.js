@@ -33,6 +33,10 @@ export const useAuthStore = create(
           sessionStorage.removeItem('token');
         }
         set({ user: null, isInitialized: true });
+
+        // Reset resume store to free memory
+        const { useResumeStore } = await import('@/store/useResumeStore');
+        useResumeStore.getState().reset();
       },
 
       // Load user profile from our database (after Descope auth)
@@ -82,18 +86,22 @@ export const useAuthStore = create(
       },
 
       // Cập nhật số credits còn lại sau khi sử dụng
-      updateCreditsRemaining: (creditsRemaining) => {
+      updateCreditsRemaining: (creditsRemaining, maxCredits) => {
         const user = get().user;
         if (user) {
-          set({
-            user: {
-              ...user,
-              creditsRemaining,
-              monthlyCreditsUsed: user.isFirstMonth !== false
-                ? 10 - creditsRemaining
-                : 3 - creditsRemaining,
-            },
-          });
+          const updatedUser = {
+            ...user,
+            creditsRemaining,
+          };
+          // Update maxCredits if provided by server
+          if (maxCredits !== undefined) {
+            updatedUser.maxCredits = maxCredits;
+          }
+          // Calculate monthlyCreditsUsed from server values
+          if (creditsRemaining !== -1 && updatedUser.maxCredits > 0) {
+            updatedUser.monthlyCreditsUsed = updatedUser.maxCredits - creditsRemaining;
+          }
+          set({ user: updatedUser });
         }
       },
 
@@ -104,21 +112,23 @@ export const useAuthStore = create(
         return user && ['basic', 'pro', 'enterprise'].includes(user.plan);
       },
       getPlan: () => get().user?.plan || 'free',
-      getCredits: () => get().user?.credits ?? 0,
       getCreditsRemaining: () => {
         const user = get().user;
         if (!user) return 0;
-        // -1 = unlimited (premium user)
-        if (user.creditsRemaining === -1) return -1;
-        return user.creditsRemaining ?? (user.isFirstMonth !== false ? 10 : 3);
+        if (user.isUnlimited || user.creditsRemaining === -1) return -1;
+        return user.creditsRemaining ?? 0;
       },
       getMaxCredits: () => {
         const user = get().user;
-        if (!user) return 3;
-        if (user.creditsRemaining === -1) return -1; // unlimited
-        return user.isFirstMonth !== false ? 10 : 3;
+        if (!user) return 5; // free plan default
+        if (user.isUnlimited || user.maxCredits === -1) return -1;
+        return user.maxCredits ?? 5;
       },
-      isFirstMonth: () => get().user?.isFirstMonth !== false,
+      hasFeature: (featureName) => {
+        const user = get().user;
+        if (!user?.features) return false;
+        return user.features[featureName] === true;
+      },
 
       clearError: () => set({ error: null }),
       setInitialized: (value) => set({ isInitialized: value }),

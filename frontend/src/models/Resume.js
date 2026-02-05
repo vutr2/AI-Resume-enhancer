@@ -165,8 +165,12 @@ const resumeSchema = new mongoose.Schema(
   }
 );
 
-// Index for searching
+// Indexes for performance
 resumeSchema.index({ title: 'text', 'parsedData.personalInfo.name': 'text' });
+resumeSchema.index({ user: 1, status: 1 });
+resumeSchema.index({ user: 1, createdAt: -1 });
+resumeSchema.index({ user: 1, isFavorite: 1 });
+resumeSchema.index({ user: 1, status: 1, createdAt: -1 });
 
 // Update lastModified on save
 resumeSchema.pre('save', function (next) {

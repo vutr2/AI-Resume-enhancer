@@ -37,4 +37,13 @@ async function dbConnect() {
   return cached.conn;
 }
 
+/**
+ * Get native MongoDB Db instance from Mongoose's connection.
+ * Use this instead of mongodb-client.js to avoid dual connections.
+ */
+export async function getDb() {
+  await dbConnect();
+  return mongoose.connection.db;
+}
+
 export default dbConnect;
