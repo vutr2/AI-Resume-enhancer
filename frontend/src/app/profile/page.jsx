@@ -108,7 +108,7 @@ export default function ProfilePage() {
     },
     {
       label: 'Gói hiện tại',
-      value: user?.plan === 'premium' ? 'Premium' : user?.plan === 'pro' ? 'Pro' : 'Free',
+      value: user?.plan === 'basic' ? 'Basic' : user?.plan === 'pro' ? 'Pro' : user?.plan === 'enterprise' ? 'Enterprise' : 'Free',
       icon: TrendingUp,
       color: '#F59E0B',
     },
