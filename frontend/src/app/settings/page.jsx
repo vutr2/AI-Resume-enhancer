@@ -1,26 +1,20 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   FileText,
   User,
-  Bell,
-  Shield,
   CreditCard,
-  Palette,
-  Globe,
   ChevronRight,
   ArrowLeft,
-  Moon,
-  Sun,
-  Monitor,
 } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Card from '@/components/ui/Card';
 import { useAuthStore } from '@/store/useAuthStore';
+import api from '@/lib/api';
 import toast from 'react-hot-toast';
 
 const settingsSections = [
@@ -31,34 +25,10 @@ const settingsSections = [
     description: 'Thông tin cá nhân và bảo mật',
   },
   {
-    id: 'notifications',
-    icon: Bell,
-    title: 'Thông báo',
-    description: 'Quản lý thông báo email và ứng dụng',
-  },
-  {
     id: 'subscription',
     icon: CreditCard,
     title: 'Gói dịch vụ',
     description: 'Quản lý gói và thanh toán',
-  },
-  {
-    id: 'appearance',
-    icon: Palette,
-    title: 'Giao diện',
-    description: 'Chế độ sáng/tối và tùy chỉnh',
-  },
-  {
-    id: 'language',
-    icon: Globe,
-    title: 'Ngôn ngữ',
-    description: 'Thay đổi ngôn ngữ hiển thị',
-  },
-  {
-    id: 'privacy',
-    icon: Shield,
-    title: 'Quyền riêng tư',
-    description: 'Quản lý dữ liệu và quyền truy cập',
   },
 ];
 
@@ -76,24 +46,27 @@ export default function SettingsPage() {
     confirmPassword: '',
   });
 
-  // Notification settings
-  const [notifications, setNotifications] = useState({
-    email: true,
-    push: true,
-    marketing: false,
-    updates: true,
-  });
+  // Payment history
+  const [paymentHistory, setPaymentHistory] = useState([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
 
-  // Appearance settings
-  const [theme, setTheme] = useState('system');
+  useEffect(() => {
+    if (activeSection === 'subscription') {
+      setLoadingHistory(true);
+      api.getPaymentHistory()
+        .then((res) => {
+          if (res.success) {
+            setPaymentHistory(res.data.payments || []);
+          }
+        })
+        .catch(() => {})
+        .finally(() => setLoadingHistory(false));
+    }
+  }, [activeSection]);
 
   const handleAccountChange = (e) => {
     const { name, value } = e.target;
     setAccountData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleNotificationChange = (key) => {
-    setNotifications((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
   const handleSaveAccount = async () => {
@@ -112,7 +85,6 @@ export default function SettingsPage() {
       toast.error('Mật khẩu xác nhận không khớp');
       return;
     }
-    // API call to change password
     toast.success('Mật khẩu đã được thay đổi');
     setAccountData((prev) => ({
       ...prev,
@@ -125,6 +97,28 @@ export default function SettingsPage() {
   const handleLogout = async () => {
     await logout();
     router.push('/');
+  };
+
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDeleteAccount = async () => {
+    setDeleting(true);
+    try {
+      const res = await api.request('/auth/delete-account', { method: 'DELETE' });
+      if (res.success) {
+        toast.success('Tài khoản đã được xóa');
+        await logout();
+        router.push('/');
+      } else {
+        toast.error(res.message || 'Xóa tài khoản thất bại');
+      }
+    } catch (error) {
+      toast.error('Lỗi hệ thống');
+    } finally {
+      setDeleting(false);
+      setShowDeleteConfirm(false);
+    }
   };
 
   const renderContent = () => {
@@ -214,80 +208,37 @@ export default function SettingsPage() {
                       Xóa tài khoản
                     </p>
                     <p className="text-sm text-[var(--foreground-muted)]">
-                      Xóa vĩnh viễn tài khoản và dữ liệu
+                      Xóa vĩnh viễn tài khoản và toàn bộ dữ liệu
                     </p>
                   </div>
-                  <Button
-                    variant="ghost"
-                    className="text-[var(--error)] hover:bg-[var(--error)] hover:bg-opacity-10"
-                  >
-                    Xóa tài khoản
-                  </Button>
+                  {!showDeleteConfirm ? (
+                    <Button
+                      variant="ghost"
+                      className="text-[var(--error)] hover:bg-[var(--error)] hover:bg-opacity-10"
+                      onClick={() => setShowDeleteConfirm(true)}
+                    >
+                      Xóa tài khoản
+                    </Button>
+                  ) : (
+                    <div className="flex gap-2">
+                      <Button
+                        variant="ghost"
+                        onClick={() => setShowDeleteConfirm(false)}
+                      >
+                        Hủy
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        className="text-white bg-[var(--error)] hover:opacity-90"
+                        onClick={handleDeleteAccount}
+                        loading={deleting}
+                      >
+                        Xác nhận xóa
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </div>
-            </div>
-          </div>
-        );
-
-      case 'notifications':
-        return (
-          <div className="space-y-6">
-            <h3 className="text-lg font-semibold text-[var(--foreground)]">
-              Cài đặt thông báo
-            </h3>
-            <div className="space-y-4">
-              {[
-                {
-                  key: 'email',
-                  title: 'Thông báo email',
-                  description: 'Nhận thông báo qua email',
-                },
-                {
-                  key: 'push',
-                  title: 'Thông báo đẩy',
-                  description: 'Nhận thông báo trên trình duyệt',
-                },
-                {
-                  key: 'updates',
-                  title: 'Cập nhật sản phẩm',
-                  description: 'Thông tin về tính năng mới',
-                },
-                {
-                  key: 'marketing',
-                  title: 'Email tiếp thị',
-                  description: 'Khuyến mãi và ưu đãi đặc biệt',
-                },
-              ].map((item) => (
-                <div
-                  key={item.key}
-                  className="flex items-center justify-between p-4 bg-[var(--background-secondary)] rounded-lg"
-                >
-                  <div>
-                    <p className="font-medium text-[var(--foreground)]">
-                      {item.title}
-                    </p>
-                    <p className="text-sm text-[var(--foreground-muted)]">
-                      {item.description}
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => handleNotificationChange(item.key)}
-                    className={`relative w-12 h-6 rounded-full transition-colors ${
-                      notifications[item.key]
-                        ? 'bg-[var(--primary)]'
-                        : 'bg-[var(--border)]'
-                    }`}
-                  >
-                    <div
-                      className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
-                        notifications[item.key]
-                          ? 'translate-x-7'
-                          : 'translate-x-1'
-                      }`}
-                    />
-                  </button>
-                </div>
-              ))}
             </div>
           </div>
         );
@@ -302,18 +253,20 @@ export default function SettingsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-lg font-bold text-[var(--foreground)]">
-                    {user?.plan === 'premium'
-                      ? 'Premium'
+                    {user?.plan === 'basic'
+                      ? 'Basic'
                       : user?.plan === 'pro'
                       ? 'Pro'
+                      : user?.plan === 'enterprise'
+                      ? 'Enterprise'
                       : 'Miễn phí'}
                   </p>
                   <p className="text-sm text-[var(--foreground-muted)]">
-                    {user?.plan === 'free'
-                      ? '3 CV mỗi tháng'
-                      : user?.plan === 'pro'
-                      ? '20 CV mỗi tháng'
-                      : 'Không giới hạn'}
+                    {user?.plan === 'basic'
+                      ? '10 CV mỗi tháng'
+                      : user?.plan === 'pro' || user?.plan === 'enterprise'
+                      ? 'Không giới hạn'
+                      : '3 CV mỗi tháng'}
                   </p>
                 </div>
                 <Link href="/pricing">
@@ -327,107 +280,47 @@ export default function SettingsPage() {
                 Lịch sử thanh toán
               </h4>
               <div className="space-y-2">
-                <p className="text-sm text-[var(--foreground-muted)]">
-                  Chưa có giao dịch nào
-                </p>
+                {loadingHistory ? (
+                  <p className="text-sm text-[var(--foreground-muted)]">Đang tải...</p>
+                ) : paymentHistory.length === 0 ? (
+                  <p className="text-sm text-[var(--foreground-muted)]">
+                    Chưa có giao dịch nào
+                  </p>
+                ) : (
+                  paymentHistory.map((payment) => (
+                    <Card key={payment._id} className="!p-3">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-[var(--foreground)]">
+                            Gói {payment.plan === 'basic' ? 'Basic' : payment.plan === 'pro' ? 'Pro' : 'Enterprise'}
+                            {' - '}
+                            {payment.billingPeriod === 'yearly' ? '12 tháng' : '1 tháng'}
+                          </p>
+                          <p className="text-xs text-[var(--foreground-muted)]">
+                            {new Date(payment.createdAt).toLocaleDateString('vi-VN')}
+                            {' | '}
+                            {payment.paymentMethod === 'vnpay' ? 'VNPay' : payment.paymentMethod === 'zalopay' ? 'ZaloPay' : payment.paymentMethod}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-medium text-[var(--foreground)]">
+                            {payment.amount?.toLocaleString('vi-VN')}đ
+                          </p>
+                          <span className={`text-xs px-2 py-0.5 rounded-full ${
+                            payment.status === 'completed'
+                              ? 'bg-emerald-100 text-emerald-700'
+                              : payment.status === 'pending'
+                              ? 'bg-yellow-100 text-yellow-700'
+                              : 'bg-red-100 text-red-700'
+                          }`}>
+                            {payment.status === 'completed' ? 'Thành công' : payment.status === 'pending' ? 'Đang xử lý' : 'Thất bại'}
+                          </span>
+                        </div>
+                      </div>
+                    </Card>
+                  ))
+                )}
               </div>
-            </div>
-          </div>
-        );
-
-      case 'appearance':
-        return (
-          <div className="space-y-6">
-            <h3 className="text-lg font-semibold text-[var(--foreground)]">
-              Giao diện
-            </h3>
-            <div className="grid grid-cols-3 gap-4">
-              {[
-                { id: 'light', icon: Sun, label: 'Sáng' },
-                { id: 'dark', icon: Moon, label: 'Tối' },
-                { id: 'system', icon: Monitor, label: 'Hệ thống' },
-              ].map((option) => {
-                const Icon = option.icon;
-                return (
-                  <button
-                    key={option.id}
-                    onClick={() => setTheme(option.id)}
-                    className={`p-4 rounded-lg border-2 transition-colors ${
-                      theme === option.id
-                        ? 'border-[var(--primary)] bg-[var(--primary)] bg-opacity-5'
-                        : 'border-[var(--border)] hover:border-[var(--foreground-muted)]'
-                    }`}
-                  >
-                    <Icon className="w-6 h-6 mx-auto mb-2 text-[var(--foreground)]" />
-                    <p className="text-sm font-medium text-[var(--foreground)]">
-                      {option.label}
-                    </p>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        );
-
-      case 'language':
-        return (
-          <div className="space-y-6">
-            <h3 className="text-lg font-semibold text-[var(--foreground)]">
-              Ngôn ngữ
-            </h3>
-            <div className="space-y-2">
-              {[
-                { code: 'vi', name: 'Tiếng Việt', flag: '🇻🇳' },
-                { code: 'en', name: 'English', flag: '🇺🇸' },
-              ].map((lang) => (
-                <button
-                  key={lang.code}
-                  className="w-full flex items-center gap-3 p-4 bg-[var(--background-secondary)] rounded-lg hover:bg-[var(--background-tertiary)] transition-colors"
-                >
-                  <span className="text-2xl">{lang.flag}</span>
-                  <span className="font-medium text-[var(--foreground)]">
-                    {lang.name}
-                  </span>
-                  {lang.code === 'vi' && (
-                    <span className="ml-auto text-[var(--primary)]">✓</span>
-                  )}
-                </button>
-              ))}
-            </div>
-          </div>
-        );
-
-      case 'privacy':
-        return (
-          <div className="space-y-6">
-            <h3 className="text-lg font-semibold text-[var(--foreground)]">
-              Quyền riêng tư và dữ liệu
-            </h3>
-            <div className="space-y-4">
-              <Card>
-                <h4 className="font-medium text-[var(--foreground)] mb-2">
-                  Dữ liệu CV của bạn
-                </h4>
-                <p className="text-sm text-[var(--foreground-muted)] mb-4">
-                  CV của bạn được mã hóa và lưu trữ an toàn. Chúng tôi không
-                  chia sẻ dữ liệu của bạn với bất kỳ bên thứ ba nào.
-                </p>
-                <Button variant="outline" size="sm">
-                  Tải xuống dữ liệu
-                </Button>
-              </Card>
-
-              <Card>
-                <h4 className="font-medium text-[var(--foreground)] mb-2">
-                  Lịch sử hoạt động
-                </h4>
-                <p className="text-sm text-[var(--foreground-muted)] mb-4">
-                  Xem và quản lý lịch sử sử dụng dịch vụ của bạn.
-                </p>
-                <Button variant="outline" size="sm">
-                  Xem lịch sử
-                </Button>
-              </Card>
             </div>
           </div>
         );

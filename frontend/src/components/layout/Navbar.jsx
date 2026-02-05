@@ -97,52 +97,6 @@ export default function Navbar() {
             </Link>
           )}
 
-          {/* Notifications */}
-          <div className="relative" ref={notificationRef}>
-            <button
-              onClick={() => setShowNotifications(!showNotifications)}
-              className="relative p-2 rounded-lg hover:bg-[var(--background-secondary)] transition-colors"
-            >
-              <Bell className="w-5 h-5 text-[var(--foreground-secondary)]" />
-              {unreadCount > 0 && (
-                <span className="absolute top-1 right-1 w-4 h-4 bg-[var(--error)] text-white text-xs rounded-full flex items-center justify-center">
-                  {unreadCount}
-                </span>
-              )}
-            </button>
-
-            {showNotifications && (
-              <div className="absolute right-0 mt-2 w-80 bg-[var(--background-elevated)] border border-[var(--border)] rounded-xl shadow-lg overflow-hidden">
-                <div className="px-4 py-3 border-b border-[var(--border)]">
-                  <h3 className="font-semibold text-[var(--foreground)]">Thông báo</h3>
-                </div>
-                <div className="max-h-80 overflow-y-auto">
-                  {notifications.map((notification) => (
-                    <div
-                      key={notification.id}
-                      className={`px-4 py-3 hover:bg-[var(--background-secondary)] cursor-pointer border-b border-[var(--border)] last:border-b-0 ${
-                        !notification.read ? 'bg-[var(--primary)] bg-opacity-5' : ''
-                      }`}
-                    >
-                      <p className="text-sm text-[var(--foreground)]">{notification.text}</p>
-                      <p className="text-xs text-[var(--foreground-muted)] mt-1">
-                        {notification.time}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-                <div className="px-4 py-3 border-t border-[var(--border)]">
-                  <Link
-                    href="/notifications"
-                    className="text-sm text-[var(--primary)] hover:underline"
-                  >
-                    Xem tất cả thông báo
-                  </Link>
-                </div>
-              </div>
-            )}
-          </div>
-
           {/* User Menu */}
           <div className="relative" ref={userMenuRef}>
             <button
@@ -155,13 +109,6 @@ export default function Navbar() {
               <div className="hidden sm:block text-left">
                 <p className="text-sm font-medium text-[var(--foreground)]">
                   {displayName}
-                </p>
-                <p className="text-xs text-[var(--foreground-muted)]">
-                  {user?.plan === 'premium'
-                    ? 'Premium'
-                    : user?.plan === 'pro'
-                    ? 'Pro'
-                    : 'Miễn phí'}
                 </p>
               </div>
               <ChevronDown className="w-4 h-4 text-[var(--foreground-muted)] hidden sm:block" />
