@@ -1,4 +1,3 @@
-import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 import dbConnect from '@/lib/db';
 import Payment from '@/models/Payment';
@@ -17,13 +16,18 @@ function sortObject(obj) {
     }, {});
 }
 
+// ✅ FIX: Không dùng URLSearchParams (VNPay không encode)
 function verifyVNPaySignature(params, secureHash) {
   const cloned = { ...params };
   delete cloned.vnp_SecureHash;
   delete cloned.vnp_SecureHashType;
 
   const sorted = sortObject(cloned);
-  const signData = new URLSearchParams(sorted).toString();
+
+  // ✅ ĐÚNG: Join trực tiếp không encode
+  const signData = Object.keys(sorted)
+    .map((key) => `${key}=${sorted[key]}`)
+    .join('&');
 
   const signed = crypto
     .createHmac('sha512', VNPAY_HASH_SECRET)
@@ -33,10 +37,27 @@ function verifyVNPaySignature(params, secureHash) {
   return secureHash === signed;
 }
 
+// ✅ Helper: Trả response chuẩn VNPay
+function vnpayResponse(rspCode, message, status = 200) {
+  return new Response(JSON.stringify({ RspCode: rspCode, Message: message }), {
+    status,
+    headers: { 'Content-Type': 'application/json' },
+  });
+}
+
 /* ===================== IPN ===================== */
 
 export async function GET(request) {
+  // ✅ FIX 3: Log ngay đầu để biết VNPay có gọi IPN không
+  console.log('VNPay IPN HIT:', request.url);
+
   try {
+    // ✅ Validate hash secret
+    if (!VNPAY_HASH_SECRET) {
+      console.error('[IPN] Missing VNPAY_HASH_SECRET');
+      return vnpayResponse('99', 'Config error');
+    }
+
     const searchParams = Object.fromEntries(
       new URL(request.url).searchParams.entries()
     );
@@ -58,40 +79,40 @@ export async function GET(request) {
     /* 1️⃣ Verify signature */
     if (!verifyVNPaySignature(searchParams, secureHash)) {
       console.error('[IPN] Invalid signature:', txnRef);
-      return NextResponse.json({ RspCode: '97', Message: 'Invalid signature' });
+      return vnpayResponse('97', 'Invalid signature');
     }
 
-    await dbConnect();
+    /* 2️⃣ Connect DB */
+    try {
+      await dbConnect();
+    } catch (dbErr) {
+      console.error('[IPN] DB connect failed:', dbErr);
+      return vnpayResponse('99', 'Database error');
+    }
 
-    /* 2️⃣ Idempotent: chỉ xử lý khi pending */
+    /* 3️⃣ Idempotent: chỉ xử lý khi pending */
     const payment = await Payment.findOne({
       orderId: txnRef,
       status: 'pending',
     });
 
     if (!payment) {
-      console.log('[IPN] Ignored (already processed):', txnRef);
-      return NextResponse.json({
-        RspCode: '02',
-        Message: 'Order already processed',
-      });
+      console.log('[IPN] Ignored (already processed or not found):', txnRef);
+      return vnpayResponse('02', 'Order already processed');
     }
 
-    /* 3️⃣ Verify amount */
+    /* 4️⃣ Verify amount */
     if (Number(payment.amount) !== Number(amount)) {
       console.error('[IPN] Amount mismatch:', {
         expected: payment.amount,
         received: amount,
       });
-      return NextResponse.json({
-        RspCode: '04',
-        Message: 'Invalid amount',
-      });
+      return vnpayResponse('04', 'Invalid amount');
     }
 
-    /* 4️⃣ Success case */
+    /* 5️⃣ Success case */
     if (responseCode === '00' && transactionStatus === '00') {
-      // Update payment
+      // ✅ Update payment (atomic)
       payment.status = 'completed';
       payment.paymentDetails = {
         ...payment.paymentDetails,
@@ -114,22 +135,23 @@ export async function GET(request) {
         expiresAt.setMonth(expiresAt.getMonth() + 1);
       }
 
-      // Update user plan (mongoose-safe)
-      await User.findByIdAndUpdate(payment.user, {
-        plan: payment.plan,
-        planExpiresAt: expiresAt,
-        updatedAt: now,
-      });
+      // ✅ Update user plan (atomic)
+      await User.findByIdAndUpdate(
+        payment.user,
+        {
+          plan: payment.plan,
+          planExpiresAt: expiresAt,
+          updatedAt: now,
+        },
+        { new: true }
+      );
 
       console.log('[IPN] Payment completed:', txnRef);
 
-      return NextResponse.json({
-        RspCode: '00',
-        Message: 'Confirm Success',
-      });
+      return vnpayResponse('00', 'Confirm Success');
     }
 
-    /* 5️⃣ Failed / canceled */
+    /* 6️⃣ Failed / canceled */
     payment.status = 'failed';
     payment.paymentDetails = {
       ...payment.paymentDetails,
@@ -141,15 +163,9 @@ export async function GET(request) {
 
     console.log('[IPN] Payment failed:', txnRef, responseCode);
 
-    return NextResponse.json({
-      RspCode: '00',
-      Message: 'Confirm Success',
-    });
+    return vnpayResponse('00', 'Confirm Success');
   } catch (err) {
     console.error('[VNPay IPN ERROR]', err);
-    return NextResponse.json({
-      RspCode: '99',
-      Message: 'Unknown error',
-    });
+    return vnpayResponse('99', 'Unknown error');
   }
 }
