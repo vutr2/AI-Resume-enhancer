@@ -200,31 +200,15 @@ class ApiClient {
   }
 
   // ==========================================
-  // Payment endpoints (VNPay & ZaloPay)
+  // Payment endpoints
   // ==========================================
 
-  // VNPay
-  async createVNPayOrder(planId, billingCycle) {
-    return this.request('/payments/vnpay/create', {
+  // SePay
+  async createSePayOrder(planId, billingCycle) {
+    return this.request('/payments/sepay/create', {
       method: 'POST',
       body: JSON.stringify({ planId, billingCycle }),
     });
-  }
-
-  async checkVNPayStatus(transactionId) {
-    return this.request(`/payments/vnpay/status/${transactionId}`);
-  }
-
-  // ZaloPay (Coming Soon)
-  async createZaloPayOrder(planId, billingCycle) {
-    return this.request('/payments/zalopay/create', {
-      method: 'POST',
-      body: JSON.stringify({ planId, billingCycle }),
-    });
-  }
-
-  async checkZaloPayStatus(transactionId) {
-    return this.request(`/payments/zalopay/status/${transactionId}`);
   }
 
   async getPaymentHistory(params = {}) {

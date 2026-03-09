@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, Suspense } from 'react';
+import { useState, Suspense, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -41,19 +41,19 @@ function PaymentContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user } = useAuthStore();
+  const formRef = useRef(null);
 
   const planId = searchParams.get('plan') || 'pro';
   const cycle = searchParams.get('cycle') || 'monthly';
 
   const [isProcessing, setIsProcessing] = useState(false);
-  const [selectedMethod, setSelectedMethod] = useState('vnpay'); // 'vnpay' hoặc 'zalopay'
+  const [selectedMethod, setSelectedMethod] = useState('sepay');
+  const [sePayForm, setSePayForm] = useState(null);
 
   const plan = plans[planId];
   const price = cycle === 'yearly' ? plan?.priceYearly : plan?.priceMonthly;
 
-  const formatPrice = (p) => {
-    return new Intl.NumberFormat('vi-VN').format(p);
-  };
+  const formatPrice = (p) => new Intl.NumberFormat('vi-VN').format(p);
 
   const handlePayment = async () => {
     if (!user) {
@@ -68,46 +68,25 @@ function PaymentContent() {
     }
 
     setIsProcessing(true);
-
     try {
-      const response = await api.createVNPayOrder(planId, cycle);
+      const response = await api.createSePayOrder(planId, cycle);
 
       if (response.success) {
-        const { transactionId, paymentUrl, amount } = response.data;
-
-        // Save pending payment info
-        localStorage.setItem(
-          'pendingPayment',
-          JSON.stringify({
-            transactionId,
-            planId,
-            billingCycle: cycle,
-            amount,
-            method: 'vnpay',
-          })
-        );
-
-        if (paymentUrl) {
-          // Redirect to VNPay payment page
-          window.location.href = paymentUrl;
-        } else {
-          toast.error('Không thể tạo liên kết thanh toán');
-        }
+        const { checkoutURL, fields } = response.data;
+        setSePayForm({ checkoutURL, fields });
+        setTimeout(() => formRef.current?.submit(), 100);
       } else {
         toast.error(response.message || 'Tạo đơn hàng thất bại');
+        setIsProcessing(false);
       }
     } catch (error) {
       console.error('Payment error:', error);
-      if (error.message.includes('đăng nhập') || error.message.includes('401')) {
+      if (error.message?.includes('401')) {
         toast.error('Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.');
         router.push(`/login?redirect=/payment?plan=${planId}&cycle=${cycle}`);
       } else {
         toast.error('Thanh toán thất bại. Vui lòng thử lại sau.');
-        setTimeout(() => {
-          router.push('/dashboard?payment=failed');
-        }, 1500);
       }
-    } finally {
       setIsProcessing(false);
     }
   };
@@ -122,6 +101,15 @@ function PaymentContent() {
 
   return (
     <div className="min-h-screen bg-[var(--background)]">
+      {/* Hidden SePay POST form - auto-submitted on payment */}
+      {sePayForm && (
+        <form ref={formRef} action={sePayForm.checkoutURL} method="POST" style={{ display: 'none' }}>
+          {Object.entries(sePayForm.fields).map(([name, value]) => (
+            <input key={name} type="hidden" name={name} value={value} />
+          ))}
+        </form>
+      )}
+
       {/* Header */}
       <header className="border-b border-[var(--border)]">
         <div className="container mx-auto px-4 py-4">
@@ -161,28 +149,28 @@ function PaymentContent() {
               </h2>
 
               <div className="space-y-4">
-                {/* VNPay - Active */}
+                {/* SePay - Active */}
                 <button
-                  onClick={() => setSelectedMethod('vnpay')}
+                  onClick={() => setSelectedMethod('sepay')}
                   className={`w-full p-4 rounded-lg border-2 transition-all text-left ${
-                    selectedMethod === 'vnpay'
+                    selectedMethod === 'sepay'
                       ? 'border-[var(--primary)] bg-[var(--primary)] bg-opacity-5'
                       : 'border-[var(--border)] hover:border-[var(--primary)] hover:border-opacity-50'
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-lg bg-[#0066CC] flex items-center justify-center">
+                    <div className="w-12 h-12 rounded-lg bg-[#E8534A] flex items-center justify-center">
                       <CreditCard className="w-6 h-6 text-white" />
                     </div>
                     <div className="flex-1">
                       <p className="font-semibold text-[var(--foreground)]">
-                        VNPay
+                        SePay
                       </p>
                       <p className="text-sm text-[var(--foreground-muted)]">
-                        Thanh toán qua VNPay - ATM, Visa, MasterCard
+                        Thẻ ATM, Visa/MasterCard, QR Code ngân hàng
                       </p>
                     </div>
-                    {selectedMethod === 'vnpay' && (
+                    {selectedMethod === 'sepay' && (
                       <div className="w-6 h-6 rounded-full bg-[var(--primary)] flex items-center justify-center">
                         <Check className="w-4 h-4 text-white" />
                       </div>
@@ -228,10 +216,10 @@ function PaymentContent() {
 
               {/* Payment instructions */}
               <div className="mt-6 p-4 bg-[var(--background-secondary)] rounded-lg">
-                {selectedMethod === 'vnpay' ? (
+                {selectedMethod === 'sepay' ? (
                   <>
                     <p className="text-sm text-[var(--foreground-secondary)] mb-3">
-                      Bạn sẽ được chuyển đến trang thanh toán của VNPay để hoàn tất giao dịch. Hỗ trợ thanh toán qua:
+                      Bạn sẽ được chuyển đến trang thanh toán của SePay để hoàn tất giao dịch. Hỗ trợ thanh toán qua:
                     </p>
                     <ul className="text-sm text-[var(--foreground-muted)] space-y-1">
                       <li className="flex items-center gap-2">
@@ -244,11 +232,7 @@ function PaymentContent() {
                       </li>
                       <li className="flex items-center gap-2">
                         <Check className="w-4 h-4 text-[var(--success)]" />
-                        QR Code (VNPay QR)
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <Check className="w-4 h-4 text-[var(--success)]" />
-                        Ví VNPay
+                        QR Code ngân hàng
                       </li>
                     </ul>
                   </>
@@ -259,7 +243,7 @@ function PaymentContent() {
                       ZaloPay sẽ sớm được hỗ trợ!
                     </p>
                     <p className="text-sm text-[var(--foreground-muted)] mt-1">
-                      Vui lòng sử dụng VNPay để thanh toán ngay bây giờ.
+                      Vui lòng sử dụng SePay để thanh toán ngay bây giờ.
                     </p>
                   </div>
                 )}
@@ -353,7 +337,7 @@ function PaymentContent() {
                 ) : (
                   <>
                     <CreditCard className="w-5 h-5 mr-2" />
-                    Thanh toán qua VNPay
+                    Thanh toán qua SePay
                   </>
                 )}
               </Button>

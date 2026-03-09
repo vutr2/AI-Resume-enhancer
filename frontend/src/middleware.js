@@ -14,10 +14,9 @@ export default authMiddleware({
     '/reset-password',
     '/pricing',
     '/api/auth/descope-sync',
-    '/api/payments/zalopay/callback',
-    '/api/payments/vnpay/callback',
     '/api/auth/complete-profile',
-    '/api/payments/vnpay/ipn',
+    '/api/payments/sepay/callback',
+    '/api/payments/sepay/ipn',
   ],
 
   // Redirect unauthenticated users to login
