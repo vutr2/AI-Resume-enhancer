@@ -95,7 +95,7 @@ export default function LoginPage() {
 
           {/* Descope Flow Component */}
           <Descope
-            flowId="sign-up-or-in"
+            flowId="sign-up-or-in-passwords-or-social"
             onSuccess={handleSuccess}
             onError={handleError}
             theme="dark"
