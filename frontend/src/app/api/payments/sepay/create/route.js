@@ -69,6 +69,7 @@ export async function POST(request) {
 
     const checkoutURL = client.checkout.initCheckoutUrl();
     const fields = client.checkout.initOneTimePaymentFields({
+      env: process.env.SEPAY_ENV || 'sandbox',
       operation: 'PURCHASE',
       payment_method: 'NAPAS_BANK_TRANSFER',
       order_invoice_number: orderId,
