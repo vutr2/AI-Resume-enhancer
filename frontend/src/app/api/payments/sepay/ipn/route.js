@@ -22,13 +22,14 @@ export async function POST(request) {
       return NextResponse.json({ success: true });
     }
 
-    if (!order?.invoice_number) {
+    const invoiceNumber = order?.order_invoice_number || order?.invoice_number;
+    if (!invoiceNumber) {
       return NextResponse.json({ success: false, message: 'Missing invoice_number' }, { status: 400 });
     }
 
     await dbConnect();
 
-    const payment = await Payment.findOne({ orderId: order.invoice_number });
+    const payment = await Payment.findOne({ orderId: invoiceNumber });
 
     if (!payment) {
       return NextResponse.json({ success: false, message: 'Payment not found' }, { status: 404 });
