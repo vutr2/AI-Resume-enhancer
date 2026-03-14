@@ -71,7 +71,7 @@ export async function POST(request) {
     const fields = client.checkout.initOneTimePaymentFields({
       env: process.env.SEPAY_ENV || 'sandbox',
       operation: 'PURCHASE',
-      payment_method: 'NAPAS_BANK_TRANSFER',
+      payment_method: 'BANK_TRANSFER',
       order_invoice_number: orderId,
       order_amount: amount,
       currency: 'VND',
