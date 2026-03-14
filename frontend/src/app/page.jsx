@@ -85,7 +85,7 @@ export default function HomePage() {
         <div className="container mx-auto max-w-4xl text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 text-white text-sm font-medium mb-6">
             <Sparkles className="w-4 h-4" />
-            Powered by Claude AI
+            Powered by AI
           </div>
 
           <h1 className="text-4xl md:text-6xl font-bold text-[var(--foreground)] mb-6 leading-tight">

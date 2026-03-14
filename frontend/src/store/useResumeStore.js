@@ -346,7 +346,11 @@ export const useResumeStore = create((set, get) => ({
   // ==========================================
   // Utility Actions
   // ==========================================
-  setCurrentResume: (resume) => set({ currentResume: resume }),
+  setCurrentResume: (resume) => set({
+    currentResume: resume,
+    scores: resume?.scores?.overall > 0 ? resume.scores : null,
+    analysis: resume?.analysis?.strengths?.length > 0 ? resume.analysis : null,
+  }),
 
   analyzeATS: async (resumeId, jobDescription = null, force = false) => {
     return get().analyzeResume(resumeId, jobDescription, force);
