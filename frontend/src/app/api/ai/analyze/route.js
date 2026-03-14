@@ -4,6 +4,7 @@ import Resume from '@/models/Resume';
 import { getCurrentUser } from '@/lib/auth';
 import { callOpenAI, SYSTEM_PROMPTS } from '@/lib/openai';
 import { rateLimitMiddleware } from '@/lib/rateLimit';
+import { cachedAICall } from '@/lib/cache';
 
 const MAX_JOB_DESC_LENGTH = 10000;
 
@@ -28,7 +29,7 @@ export async function POST(request) {
     await dbConnect();
 
     const body = await request.json();
-    const { resumeId, jobDescription } = body;
+    const { resumeId, jobDescription, force } = body;
 
     if (!resumeId) {
       return NextResponse.json(
@@ -50,10 +51,19 @@ export async function POST(request) {
       );
     }
 
-    // Kiểm tra CV có nội dung không
-    console.log('Resume rawText length:', resume.rawText?.length || 0);
-    console.log('Resume rawText preview:', resume.rawText?.substring(0, 200) || 'EMPTY');
+    // Return cached MongoDB result if already analyzed and not forcing re-analysis
+    if (!force && resume.status === 'analyzed' && resume.scores?.overall > 0) {
+      return NextResponse.json(
+        {
+          success: true,
+          message: 'Phân tích CV thành công',
+          data: { scores: resume.scores, analysis: resume.analysis },
+        },
+        { status: 200 }
+      );
+    }
 
+    // Kiểm tra CV có nội dung không
     if (!resume.rawText || resume.rawText.trim().length < 50) {
       return NextResponse.json(
         {
@@ -74,13 +84,13 @@ export async function POST(request) {
       analysisContent += `Job Description:\n${trimmedJD}\n\n`;
     }
 
-    console.log('Analyzing CV with content length:', resume.rawText.length, 'chars');
-
     try {
-      // Call AI to analyze resume
-      const analysis = await callOpenAI(
-        SYSTEM_PROMPTS.analyzeResume,
-        `Phân tích và chấm điểm CV sau:\n\n${analysisContent}`
+      // Call AI with content-hash cache (24h TTL) — same CV content won't re-call Claude
+      const analysis = await cachedAICall(
+        analysisContent,
+        'analyze',
+        null,
+        () => callOpenAI(SYSTEM_PROMPTS.analyzeResume, `Phân tích và chấm điểm CV sau:\n\n${analysisContent}`)
       );
 
       // Normalize atsIssues to match schema format
@@ -99,9 +109,6 @@ export async function POST(request) {
         });
       }
 
-      // Log để debug
-      console.log('AI Analysis result:', JSON.stringify(analysis, null, 2));
-
       // Normalize scores - AI có thể trả về scores trong object "scores" hoặc trực tiếp
       const scoresData = analysis.scores || analysis;
       const normalizedScores = {
@@ -112,8 +119,6 @@ export async function POST(request) {
         keywordScore: Number(scoresData?.keywordScore) || Number(scoresData?.scores?.keywordScore) || 0,
         readabilityScore: Number(scoresData?.readabilityScore) || Number(scoresData?.scores?.readabilityScore) || 0,
       };
-
-      console.log('Normalized scores:', normalizedScores);
 
       // Validate: nếu tất cả scores = 0, có nghĩa là AI response không hợp lệ
       const hasValidScores = normalizedScores.overall > 0 ||

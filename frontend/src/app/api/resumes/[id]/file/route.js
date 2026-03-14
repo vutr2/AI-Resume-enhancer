@@ -25,11 +25,11 @@ export async function GET(request, { params }) {
 
     const buffer = Buffer.from(resume.fileData, 'base64');
 
-    return new NextResponse(buffer, {
+    return new NextResponse(new Uint8Array(buffer), {
       status: 200,
       headers: {
         'Content-Type': resume.fileMimeType || 'application/pdf',
-        'Content-Disposition': `inline; filename="${resume.originalFileName}"`,
+        'Content-Disposition': `inline; filename*=UTF-8''${encodeURIComponent(resume.originalFileName || 'resume.pdf')}`,
         'Cache-Control': 'private, max-age=3600',
       },
     });

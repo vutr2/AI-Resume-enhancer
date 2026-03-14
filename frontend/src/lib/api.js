@@ -171,10 +171,10 @@ class ApiClient {
     });
   }
 
-  async analyzeResume(resumeId, jobDescription = null) {
+  async analyzeResume(resumeId, jobDescription = null, force = false) {
     return this.request('/ai/analyze', {
       method: 'POST',
-      body: JSON.stringify({ resumeId, jobDescription }),
+      body: JSON.stringify({ resumeId, jobDescription, force }),
     });
   }
 

@@ -246,10 +246,10 @@ export const useResumeStore = create((set, get) => ({
     }
   },
 
-  analyzeResume: async (resumeId, jobDescription = null) => {
+  analyzeResume: async (resumeId, jobDescription = null, force = false) => {
     set({ isAnalyzing: true, error: null });
     try {
-      const response = await api.analyzeResume(resumeId, jobDescription);
+      const response = await api.analyzeResume(resumeId, jobDescription, force);
       if (response.success) {
         const newScores = response.data.scores;
         const newAnalysis = response.data.analysis;
@@ -348,8 +348,8 @@ export const useResumeStore = create((set, get) => ({
   // ==========================================
   setCurrentResume: (resume) => set({ currentResume: resume }),
 
-  analyzeATS: async (resumeId, jobDescription = null) => {
-    return get().analyzeResume(resumeId, jobDescription);
+  analyzeATS: async (resumeId, jobDescription = null, force = false) => {
+    return get().analyzeResume(resumeId, jobDescription, force);
   },
 
   rewriteResume: async (resumeId, style, tone) => {

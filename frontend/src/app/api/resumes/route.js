@@ -48,7 +48,7 @@ export async function GET(request) {
         .sort(sort)
         .skip(skip)
         .limit(limit)
-        .select('-rawText -versions'),
+        .select('-rawText -versions -fileData'),
       Resume.countDocuments(query),
     ]);
 

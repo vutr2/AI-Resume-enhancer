@@ -10,10 +10,10 @@ import toast from 'react-hot-toast';
 export default function ATSTab({ resume }) {
   const { analyzeATS, scores, analysis, isAnalyzing } = useResumeStore();
 
-  const handleAnalyze = async () => {
+  const handleAnalyze = async (force = false) => {
     if (!resume?._id) return;
     toast.loading('Đang phân tích ATS...', { id: 'ats-loading' });
-    const result = await analyzeATS(resume._id);
+    const result = await analyzeATS(resume._id, null, force);
     toast.dismiss('ats-loading');
     if (result.success) {
       toast.success('Phân tích ATS hoàn tất!');
@@ -186,8 +186,8 @@ export default function ATSTab({ resume }) {
 
           {/* Re-analyze */}
           <div className="text-center">
-            <Button onClick={handleAnalyze} loading={isAnalyzing} variant="secondary">
-              Kiểm tra lại
+            <Button onClick={() => handleAnalyze(true)} loading={isAnalyzing} variant="secondary">
+              Phân tích lại
             </Button>
           </div>
         </>
