@@ -7,9 +7,10 @@ import User from '@/models/User';
 // SePay sends POST with X-Secret-Key header for authentication
 export async function POST(request) {
   try {
-    // Verify secret key
+    // Verify secret key if configured in SePay merchant dashboard
     const secretKey = request.headers.get('x-secret-key');
-    if (!secretKey || secretKey !== process.env.SEPAY_SECRET_KEY) {
+    const configuredKey = process.env.SEPAY_IPN_SECRET;
+    if (configuredKey && secretKey !== configuredKey) {
       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     }
 
