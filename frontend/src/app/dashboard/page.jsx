@@ -99,18 +99,27 @@ function DashboardPageContent() {
 
       case 'review':
         return (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div>
-              <h2 className="text-xl font-bold text-[var(--foreground)] mb-4">
-                Thông tin CV
-              </h2>
-              <ResumePreview resume={currentResume?.parsedData} />
+          <div className="flex flex-col h-full">
+            {/* Header */}
+            <div className="mb-4">
+              <h1 className="text-2xl font-bold text-[var(--foreground)]">AI Resume Review</h1>
+              {currentResume && (
+                <p className="text-sm text-[var(--foreground-muted)] mt-0.5">
+                  {currentResume.originalName || currentResume.filename || 'Your Resume'}
+                </p>
+              )}
             </div>
-            <div>
-              <h2 className="text-xl font-bold text-[var(--foreground)] mb-4">
-                Điểm đánh giá
-              </h2>
-              <ScoreOverview scores={scores} />
+            {/* Two-panel layout */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6" style={{ minHeight: '600px' }}>
+              <div className="overflow-hidden rounded-xl border border-[var(--border)]" style={{ maxHeight: '700px' }}>
+                <ResumePreview
+                  resumeId={currentResume?._id}
+                  resume={currentResume?.parsedData}
+                />
+              </div>
+              <div style={{ maxHeight: '700px' }}>
+                <ScoreOverview scores={scores} />
+              </div>
             </div>
           </div>
         );

@@ -6,9 +6,7 @@ import User from '@/models/User';
 import { getCurrentUser } from '@/lib/auth';
 
 const PLAN_PRICES = {
-  basic:      { monthly: 99000,  yearly: 990000  },
-  pro:        { monthly: 199000, yearly: 1990000 },
-  enterprise: { monthly: 499000, yearly: 4990000 },
+  pro: { monthly: 99000, yearly: 990000 },
 };
 
 function generateOrderId() {

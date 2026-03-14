@@ -20,6 +20,14 @@ const resumeSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
+    fileData: {
+      type: String, // base64 encoded file content
+      default: null,
+    },
+    fileMimeType: {
+      type: String,
+      default: null,
+    },
     rawText: {
       type: String,
       default: '',

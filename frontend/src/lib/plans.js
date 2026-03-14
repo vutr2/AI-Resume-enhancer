@@ -19,40 +19,10 @@ export const PLANS = {
       prioritySupport: false,
     },
   },
-  basic: {
-    name: 'Basic',
-    monthlyAICredits: 20,
-    monthlyCVUploads: 10,
-    features: {
-      atsBasic: true,
-      atsAdvanced: true,
-      atsDetailed: false,
-      rewriteCV: true,
-      matchJob: false,
-      coverLetter: false,
-      exportPDF: true,
-      prioritySupport: false,
-    },
-  },
   pro: {
     name: 'Pro',
     monthlyAICredits: -1, // unlimited
     monthlyCVUploads: -1, // unlimited
-    features: {
-      atsBasic: true,
-      atsAdvanced: true,
-      atsDetailed: true,
-      rewriteCV: true,
-      matchJob: true,
-      coverLetter: true,
-      exportPDF: true,
-      prioritySupport: true,
-    },
-  },
-  enterprise: {
-    name: 'Enterprise',
-    monthlyAICredits: -1,
-    monthlyCVUploads: -1,
     features: {
       atsBasic: true,
       atsAdvanced: true,

@@ -8,7 +8,6 @@ import {
   X,
   FileText,
   Sparkles,
-  Zap,
   ArrowRight,
   Crown,
   AlertTriangle,
@@ -42,37 +41,16 @@ const plans = [
     ],
   },
   {
-    id: 'basic',
-    name: 'Basic',
-    description: 'Dành cho người tìm việc',
+    id: 'pro',
+    name: 'Pro',
+    description: 'Đầy đủ tính năng AI — giá tốt nhất thị trường',
     price: 99000,
     priceMonthly: 99000,
     priceYearly: 990000,
-    icon: Zap,
-    color: 'var(--primary)',
-    level: 1,
-    features: [
-      { text: '10 CV mỗi tháng', included: true },
-      { text: '20 lượt AI/tháng', included: true },
-      { text: 'Điểm ATS nâng cao', included: true },
-      { text: 'Viết lại CV', included: true },
-      { text: 'So khớp JD', included: false },
-      { text: 'Thư ứng tuyển', included: false },
-      { text: 'Xuất PDF/DOCX', included: true },
-      { text: 'Hỗ trợ email', included: true },
-    ],
-  },
-  {
-    id: 'pro',
-    name: 'Pro',
-    description: 'Dành cho người tìm việc nghiêm túc',
-    price: 199000,
-    priceMonthly: 199000,
-    priceYearly: 1990000,
     icon: Sparkles,
     color: '#8B5CF6',
     popular: true,
-    level: 2,
+    level: 1,
     features: [
       { text: 'CV không giới hạn', included: true },
       { text: 'AI không giới hạn', included: true },
@@ -270,7 +248,7 @@ export default function PricingPage() {
         </div>
 
         {/* Plans */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-3xl mx-auto">
           {plans.map((plan) => {
             const Icon = plan.icon;
             const price =

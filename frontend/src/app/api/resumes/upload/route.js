@@ -105,6 +105,8 @@ export async function POST(request) {
       title: file.name.replace(/\.[^/.]+$/, ''),
       originalFileName: file.name,
       rawText,
+      fileData: file.type === 'application/pdf' ? buffer.toString('base64') : null,
+      fileMimeType: file.type,
       status: 'draft',
     });
 

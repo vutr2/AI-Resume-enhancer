@@ -20,20 +20,10 @@ import api from '@/lib/api';
 import toast from 'react-hot-toast';
 
 const plans = {
-  basic: {
-    name: 'Basic',
-    priceMonthly: 99000,
-    priceYearly: 990000,
-  },
   pro: {
     name: 'Pro',
-    priceMonthly: 199000,
-    priceYearly: 1990000,
-  },
-  enterprise: {
-    name: 'Enterprise',
-    priceMonthly: 499000,
-    priceYearly: 4990000,
+    priceMonthly: 99000,
+    priceYearly: 990000,
   },
 };
 

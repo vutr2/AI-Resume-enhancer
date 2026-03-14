@@ -22,7 +22,8 @@ import {
 } from 'lucide-react';
 import { useResumeStore } from '@/store/useResumeStore';
 import { useAuthStore } from '@/store/useAuthStore';
-import toast from 'react-hot-toast';
+import { useState } from 'react';
+import UpgradeModal from '@/components/ui/UpgradeModal';
 
 const mainMenuItems = [
   {
@@ -103,6 +104,7 @@ export default function Sidebar({ activeTab, onTabChange, collapsed, onToggleCol
   const pathname = usePathname();
   const { currentResume } = useResumeStore();
   const { user } = useAuthStore();
+  const [upgradeModal, setUpgradeModal] = useState(false);
 
   const isTabDisabled = (tab) => {
     if (tab === 'upload') return false;
@@ -110,6 +112,7 @@ export default function Sidebar({ activeTab, onTabChange, collapsed, onToggleCol
   };
 
   return (
+    <>
     <aside
       className={clsx(
         'fixed left-0 top-16 h-[calc(100vh-4rem)] bg-[var(--background)] border-r border-[var(--border)] transition-all duration-300 z-40',
@@ -184,10 +187,7 @@ export default function Sidebar({ activeTab, onTabChange, collapsed, onToggleCol
                 const handleClick = () => {
                   if (isDisabled) return;
                   if (isLocked) {
-                    toast(item.upgradeMsg, {
-                      icon: '🔒',
-                      duration: 3000,
-                    });
+                    setUpgradeModal(true);
                     return;
                   }
                   onTabChange(item.tab);
@@ -358,5 +358,8 @@ export default function Sidebar({ activeTab, onTabChange, collapsed, onToggleCol
         )}
       </div>
     </aside>
+
+    <UpgradeModal isOpen={upgradeModal} onClose={() => setUpgradeModal(false)} />
+    </>
   );
 }

@@ -1,120 +1,88 @@
 'use client';
 
-import { User, Briefcase, GraduationCap, Wrench, Mail, Phone, MapPin } from 'lucide-react';
-import Card from '../ui/Card';
+// resumeId: MongoDB _id of the resume (to fetch PDF)
+// resume: parsedData (fallback text rendering)
+export default function ResumePreview({ resume, resumeId }) {
+  // If we have a resumeId, show the actual PDF via iframe
+  if (resumeId) {
+    return (
+      <iframe
+        src={`/api/resumes/${resumeId}/file`}
+        className="w-full h-full rounded-lg bg-white"
+        style={{ minHeight: '600px', border: 'none' }}
+        title="Resume PDF"
+      />
+    );
+  }
 
-export default function ResumePreview({ resume }) {
+  // Fallback: text-based preview
   if (!resume) {
     return (
-      <Card className="text-center py-12">
-        <p className="text-[var(--foreground-muted)]">Chưa có dữ liệu CV</p>
-      </Card>
+      <div className="bg-white rounded-lg p-8 text-center text-gray-400 min-h-[400px] flex items-center justify-center">
+        <p>Chưa có dữ liệu CV</p>
+      </div>
     );
   }
 
   const { personalInfo, experience, education, skills } = resume;
 
   return (
-    <div className="space-y-6">
-      {/* Personal Info */}
-      <Card>
-        <div className="flex items-start gap-4">
-          <div className="w-16 h-16 rounded-full bg-[var(--primary)] bg-opacity-10 flex items-center justify-center">
-            <User className="w-8 h-8 text-[var(--primary)]" />
-          </div>
-          <div className="flex-1">
-            <h2 className="text-xl font-bold text-[var(--foreground)]">
-              {personalInfo?.name || 'Chưa có tên'}
-            </h2>
-            <p className="text-[var(--foreground-secondary)]">
-              {personalInfo?.title || 'Chưa có chức danh'}
-            </p>
-            <div className="flex flex-wrap gap-4 mt-3 text-sm text-[var(--foreground-muted)]">
-              {personalInfo?.email && (
-                <span className="flex items-center gap-1">
-                  <Mail className="w-4 h-4" />
-                  {personalInfo.email}
-                </span>
-              )}
-              {personalInfo?.phone && (
-                <span className="flex items-center gap-1">
-                  <Phone className="w-4 h-4" />
-                  {personalInfo.phone}
-                </span>
-              )}
-              {personalInfo?.location && (
-                <span className="flex items-center gap-1">
-                  <MapPin className="w-4 h-4" />
-                  {personalInfo.location}
-                </span>
-              )}
-            </div>
+    <div className="bg-white rounded-lg overflow-y-auto h-full font-serif text-gray-800 text-sm leading-relaxed">
+      <div className="p-8">
+        <div className="text-center mb-6">
+          <h1 className="text-xl font-bold uppercase tracking-widest text-gray-900">
+            {personalInfo?.name || 'Họ và Tên'}
+          </h1>
+          {personalInfo?.title && (
+            <p className="text-sm text-gray-600 mt-1">{personalInfo.title}</p>
+          )}
+          <div className="flex flex-wrap justify-center gap-x-3 gap-y-1 mt-2 text-xs text-gray-600">
+            {personalInfo?.email && <span>Email: <a href={`mailto:${personalInfo.email}`} className="text-blue-600">{personalInfo.email}</a></span>}
+            {personalInfo?.email && personalInfo?.phone && <span>|</span>}
+            {personalInfo?.phone && <span>Phone: {personalInfo.phone}</span>}
+            {personalInfo?.location && <><span>|</span><span>{personalInfo.location}</span></>}
           </div>
         </div>
-      </Card>
 
-      {/* Experience */}
-      {experience && experience.length > 0 && (
-        <Card>
-          <div className="flex items-center gap-2 mb-4">
-            <Briefcase className="w-5 h-5 text-[var(--primary)]" />
-            <h3 className="text-lg font-semibold text-[var(--foreground)]">Kinh nghiệm</h3>
-          </div>
-          <div className="space-y-4">
-            {experience.map((exp, index) => (
-              <div key={index} className="border-l-2 border-[var(--border)] pl-4">
-                <h4 className="font-medium text-[var(--foreground)]">{exp.title}</h4>
-                <p className="text-[var(--foreground-secondary)]">{exp.company}</p>
-                <p className="text-sm text-[var(--foreground-muted)]">{exp.duration}</p>
-                {exp.description && (
-                  <p className="text-sm text-[var(--foreground-secondary)] mt-2">
-                    {exp.description}
-                  </p>
-                )}
+        {education && education.length > 0 && (
+          <div className="mb-5">
+            <h2 className="text-xs font-bold uppercase tracking-widest text-blue-700 border-b border-gray-300 pb-1 mb-3">Education</h2>
+            {education.map((edu, i) => (
+              <div key={i} className="mb-3">
+                <div className="flex justify-between items-start">
+                  <span className="font-bold text-gray-900">{edu.school || edu.institution}</span>
+                  <span className="text-xs text-gray-500 shrink-0 ml-2">{edu.year || edu.duration}</span>
+                </div>
+                <p className="text-gray-700">{edu.degree}</p>
+                {edu.gpa && <p className="text-xs text-gray-500">GPA: {edu.gpa}</p>}
               </div>
             ))}
           </div>
-        </Card>
-      )}
+        )}
 
-      {/* Education */}
-      {education && education.length > 0 && (
-        <Card>
-          <div className="flex items-center gap-2 mb-4">
-            <GraduationCap className="w-5 h-5 text-[var(--primary)]" />
-            <h3 className="text-lg font-semibold text-[var(--foreground)]">Học vấn</h3>
-          </div>
-          <div className="space-y-4">
-            {education.map((edu, index) => (
-              <div key={index} className="border-l-2 border-[var(--border)] pl-4">
-                <h4 className="font-medium text-[var(--foreground)]">{edu.degree}</h4>
-                <p className="text-[var(--foreground-secondary)]">{edu.school}</p>
-                <p className="text-sm text-[var(--foreground-muted)]">{edu.year}</p>
+        {experience && experience.length > 0 && (
+          <div className="mb-5">
+            <h2 className="text-xs font-bold uppercase tracking-widest text-blue-700 border-b border-gray-300 pb-1 mb-3">Experience</h2>
+            {experience.map((exp, i) => (
+              <div key={i} className="mb-3">
+                <div className="flex justify-between items-start">
+                  <span className="font-bold text-gray-900">{exp.title}</span>
+                  <span className="text-xs text-gray-500 shrink-0 ml-2">{exp.duration}</span>
+                </div>
+                <p className="text-gray-700 font-medium">{exp.company}</p>
+                {exp.description && <p className="text-xs text-gray-600 mt-1">{exp.description}</p>}
               </div>
             ))}
           </div>
-        </Card>
-      )}
+        )}
 
-      {/* Skills */}
-      {skills && skills.length > 0 && (
-        <Card>
-          <div className="flex items-center gap-2 mb-4">
-            <Wrench className="w-5 h-5 text-[var(--primary)]" />
-            <h3 className="text-lg font-semibold text-[var(--foreground)]">Kỹ năng</h3>
+        {skills && skills.length > 0 && (
+          <div className="mb-5">
+            <h2 className="text-xs font-bold uppercase tracking-widest text-blue-700 border-b border-gray-300 pb-1 mb-3">Skills</h2>
+            <p className="text-gray-700">{skills.join(', ')}</p>
           </div>
-          <div className="flex flex-wrap gap-2">
-            {skills.map((skill, index) => (
-              <span
-                key={index}
-                className="px-3 py-1 bg-[var(--background-secondary)] text-[var(--foreground)] rounded-full text-sm"
-              >
-                {skill}
-              </span>
-            ))}
-          </div>
-        </Card>
-      )}
+        )}
+      </div>
     </div>
   );
 }
