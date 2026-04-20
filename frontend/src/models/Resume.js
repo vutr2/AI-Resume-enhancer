@@ -24,6 +24,10 @@ const resumeSchema = new mongoose.Schema(
       type: String, // base64 encoded file content
       default: null,
     },
+    fileHtml: {
+      type: String, // HTML converted from Word file for preview
+      default: null,
+    },
     fileMimeType: {
       type: String,
       default: null,

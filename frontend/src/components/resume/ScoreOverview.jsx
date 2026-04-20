@@ -14,21 +14,21 @@ function CircularGauge({ score }) {
 
   const label =
     score < 40
-      ? 'Critical — Rebuild Core Sections'
+      ? 'Cần cải thiện ngay — Xây dựng lại các phần cơ bản'
       : score < 60
-      ? 'Needs Improvement'
+      ? 'Cần cải thiện'
       : score < 80
-      ? 'Good — Polish Your Resume'
-      : 'Excellent — Job Ready!';
+      ? 'Tốt — Hoàn thiện thêm CV của bạn'
+      : 'Xuất sắc — Sẵn sàng ứng tuyển!';
 
   const sublabel =
     score < 40
-      ? 'Unlock your rebuild roadmap: structure, keywords, and high-impact rewrites.'
+      ? 'Hãy tái cấu trúc CV với từ khóa và nội dung có tác động cao.'
       : score < 60
-      ? 'Your resume needs some work to stand out to recruiters.'
+      ? 'CV của bạn cần được cải thiện thêm để nổi bật với nhà tuyển dụng.'
       : score < 80
-      ? 'A few more tweaks and your resume will be employer-ready.'
-      : 'Your resume is optimized and ready to impress recruiters!';
+      ? 'Chỉnh sửa thêm một chút và CV của bạn sẽ sẵn sàng cho nhà tuyển dụng.'
+      : 'CV của bạn đã được tối ưu và sẵn sàng gây ấn tượng với nhà tuyển dụng!';
 
   return (
     <div className="flex flex-col items-center py-6">
@@ -100,11 +100,11 @@ export default function ScoreOverview({ scores }) {
     overallScore < 40 ? '#ef4444' : overallScore < 60 ? '#f97316' : overallScore < 80 ? '#eab308' : '#22c55e';
 
   const categories = [
-    { label: 'ATS',       score: Math.round((atsScore / 100) * 20),        max: 20, color: barColor },
-    { label: 'Content',   score: Math.round((contentScore / 100) * 40),    max: 40, color: barColor },
-    { label: 'Writing',   score: Math.round((formatScore / 100) * 10),     max: 10, color: barColor },
-    { label: 'Job Match', score: Math.round((keywordScore / 100) * 25),    max: 25, color: barColor },
-    { label: 'Ready',     score: Math.round((readabilityScore / 100) * 5), max: 5,  color: '#22c55e' },
+    { label: 'ATS',          score: Math.round((atsScore / 100) * 20),        max: 20, color: barColor },
+    { label: 'Nội dung',     score: Math.round((contentScore / 100) * 40),    max: 40, color: barColor },
+    { label: 'Trình bày',   score: Math.round((formatScore / 100) * 10),     max: 10, color: barColor },
+    { label: 'Phù hợp JD',  score: Math.round((keywordScore / 100) * 25),    max: 25, color: barColor },
+    { label: 'Sẵn sàng',    score: Math.round((readabilityScore / 100) * 5), max: 5,  color: '#22c55e' },
   ];
 
   if (!scores || overallScore === 0) {
@@ -121,7 +121,7 @@ export default function ScoreOverview({ scores }) {
       <div className="px-6 pb-6">
         <div className="flex items-center gap-2 mb-4">
           <BarChart2 className="w-4 h-4 text-gray-400" />
-          <span className="text-sm font-semibold text-gray-200">Category Breakdown</span>
+          <span className="text-sm font-semibold text-gray-200">Phân tích chi tiết</span>
         </div>
         <div className="space-y-3">
           {categories.map((cat) => (

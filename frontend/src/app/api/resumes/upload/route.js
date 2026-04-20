@@ -68,6 +68,7 @@ export async function POST(request) {
     const buffer = Buffer.from(bytes);
 
     let rawText = '';
+    let fileHtml = null;
 
     // Parse PDF
     if (file.type === 'application/pdf') {
@@ -87,8 +88,28 @@ export async function POST(request) {
           { status: 400 }
         );
       }
-    } else {
-      rawText = 'File Word sẽ được xử lý sau khi upload';
+    } else if (
+      file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+      file.type === 'application/msword'
+    ) {
+      try {
+        const mammoth = (await import('mammoth')).default;
+        const [htmlResult, textResult] = await Promise.all([
+          mammoth.convertToHtml({ buffer }),
+          mammoth.extractRawText({ buffer }),
+        ]);
+        rawText = textResult.value;
+        fileHtml = htmlResult.value;
+        if (rawText.length > 50000) {
+          rawText = rawText.substring(0, 50000);
+        }
+      } catch (parseError) {
+        console.error('Word parse error:', parseError);
+        return NextResponse.json(
+          { success: false, message: 'Không thể đọc file Word. Vui lòng kiểm tra lại file.' },
+          { status: 400 }
+        );
+      }
     }
 
     // Validate extracted text
@@ -105,7 +126,8 @@ export async function POST(request) {
       title: file.name.replace(/\.[^/.]+$/, ''),
       originalFileName: file.name,
       rawText,
-      fileData: file.type === 'application/pdf' ? buffer.toString('base64') : null,
+      fileData: buffer.toString('base64'),
+      fileHtml,
       fileMimeType: file.type,
       status: 'draft',
     });
@@ -121,6 +143,8 @@ export async function POST(request) {
             originalFileName: resume.originalFileName,
             status: resume.status,
             createdAt: resume.createdAt,
+            fileMimeType: resume.fileMimeType,
+            fileHtml: resume.fileHtml || null,
           },
           rawText: rawText.substring(0, 500) + '...',
         },

@@ -2,9 +2,20 @@
 
 // resumeId: MongoDB _id of the resume (to fetch PDF)
 // resume: parsedData (fallback text rendering)
-export default function ResumePreview({ resume, resumeId }) {
-  // If we have a resumeId, show the actual PDF via iframe
+// fileHtml: HTML string converted from Word file for preview
+export default function ResumePreview({ resume, resumeId, fileHtml }) {
   if (resumeId) {
+    // Word file: render converted HTML
+    if (fileHtml) {
+      return (
+        <div
+          className="w-full h-full rounded-lg bg-white overflow-y-auto p-8 text-gray-800 text-sm leading-relaxed"
+          style={{ minHeight: '600px' }}
+          dangerouslySetInnerHTML={{ __html: fileHtml }}
+        />
+      );
+    }
+    // PDF: use iframe
     return (
       <iframe
         src={`/api/resumes/${resumeId}/file`}

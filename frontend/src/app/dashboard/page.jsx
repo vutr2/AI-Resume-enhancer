@@ -115,6 +115,7 @@ function DashboardPageContent() {
                 <ResumePreview
                   resumeId={currentResume?._id}
                   resume={currentResume?.parsedData}
+                  fileHtml={currentResume?.fileHtml}
                 />
               </div>
               <div style={{ maxHeight: '700px' }}>
