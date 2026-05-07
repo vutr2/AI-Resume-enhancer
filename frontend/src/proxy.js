@@ -15,6 +15,7 @@ export default authMiddleware({
     '/pricing',
     '/api/auth/descope-sync',
     '/api/auth/complete-profile',
+    '/api/payments/sepay/create',
     '/api/payments/sepay/callback',
     '/api/payments/sepay/ipn',
   ],
