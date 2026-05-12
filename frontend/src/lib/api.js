@@ -30,10 +30,14 @@ class ApiClient {
 
     try {
       const response = await fetch(url, config);
-      const data = await response.json();
+
+      const contentType = response.headers.get('content-type');
+      const isJson = contentType && contentType.includes('application/json');
+      const data = isJson ? await response.json() : await response.text();
 
       if (!response.ok) {
-        throw new Error(data.message || `Lỗi ${response.status}`);
+        const message = isJson ? data.message : data;
+        throw new Error(message || `Lỗi ${response.status}`);
       }
 
       return data;
@@ -141,9 +145,11 @@ class ApiClient {
       body: formData,
     });
 
-    const data = await response.json();
+    const contentType = response.headers.get('content-type');
+    const isJson = contentType && contentType.includes('application/json');
+    const data = isJson ? await response.json() : await response.text();
     if (!response.ok) {
-      throw new Error(data.message || 'Upload thất bại');
+      throw new Error((isJson ? data.message : data) || 'Upload thất bại');
     }
     return data;
   }
