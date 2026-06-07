@@ -1,17 +1,32 @@
 import { NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
-import { getCurrentUser } from '@/lib/auth';
+import { getDescopeClient } from '@/lib/descope';
 import { getUserPlan } from '@/lib/plans';
 
 // POST /api/auth/descope-sync
 // Sync Descope user with our MongoDB database
 export async function POST(request) {
   try {
-    // Validate Descope session
-    const descopeUser = await getCurrentUser();
-    if (!descopeUser) {
+    // Validate session via Bearer token sent immediately after Descope onSuccess
+    // (the DS cookie isn't written to the browser yet at that instant)
+    const authHeader = request.headers.get('Authorization');
+    const sessionJwt = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
+
+    if (!sessionJwt) {
       return NextResponse.json(
         { success: false, message: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    let verifiedToken;
+    try {
+      const client = getDescopeClient();
+      const result = await client.validateSession(sessionJwt);
+      verifiedToken = result.token;
+    } catch {
+      return NextResponse.json(
+        { success: false, message: 'Invalid session token' },
         { status: 401 }
       );
     }
@@ -26,7 +41,7 @@ export async function POST(request) {
     }
 
     // Ensure request matches the authenticated session
-    if (userId !== descopeUser.descopeId) {
+    if (userId !== verifiedToken.sub) {
       return NextResponse.json(
         { success: false, message: 'User ID mismatch' },
         { status: 403 }

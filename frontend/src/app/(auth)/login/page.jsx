@@ -30,6 +30,7 @@ export default function LoginPage() {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            'Authorization': `Bearer ${e.detail.sessionJwt}`,
           },
           body: JSON.stringify({
             userId: e.detail.user.userId,
