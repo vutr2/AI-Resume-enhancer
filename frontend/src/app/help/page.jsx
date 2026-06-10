@@ -305,15 +305,14 @@ export default function HelpPage() {
                 href: '#contact',
               },
             ].map((item, index) => {
-              const Icon = item.icon;
               return (
                 <a
                   key={index}
                   href={item.href}
                   className="flex flex-col items-center gap-3 p-6 bg-[var(--background-secondary)] rounded-xl hover:bg-[var(--background-tertiary)] transition-colors"
                 >
-                  <div className="w-12 h-12 rounded-full bg-[var(--primary)] bg-opacity-10 flex items-center justify-center">
-                    <Icon className="w-6 h-6 text-[var(--primary)]" />
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center overflow-hidden">
+                    <img src="/logo.png" alt="logo" className="w-10 h-10 object-contain rounded-full" />
                   </div>
                   <span className="font-medium text-[var(--foreground)]">
                     {item.label}
@@ -331,12 +330,11 @@ export default function HelpPage() {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {guides.map((guide) => {
-              const Icon = guide.icon;
               return (
                 <Card key={guide.id} className="h-full">
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 rounded-lg bg-[var(--primary)] bg-opacity-10 flex items-center justify-center">
-                      <Icon className="w-5 h-5 text-[var(--primary)]" />
+                    <div className="w-10 h-10 rounded-lg overflow-hidden flex items-center justify-center">
+                      <img src="/logo.png" alt="logo" className="w-8 h-8 object-contain rounded-lg" />
                     </div>
                     <div>
                       <h3 className="font-semibold text-[var(--foreground)]">
@@ -526,12 +524,6 @@ export default function HelpPage() {
                           resumaxvn@gmail.com
                         </a>
                       </p>
-                      <p className="flex items-center gap-2">
-                        <MessageCircle className="w-4 h-4 text-[var(--foreground-muted)]" />
-                        <span className="text-[var(--foreground)]">
-                          Chat Zalo: 0356993205
-                        </span>
-                      </p>
                     </div>
                   </div>
                 </div>
@@ -647,7 +639,7 @@ export default function HelpPage() {
       {/* Footer */}
       <footer className="border-t border-[var(--border)] py-8 mt-12">
         <div className="container mx-auto px-4 text-center text-sm text-[var(--foreground-muted)]">
-          <p>© 2024 ResuMax VN. Mọi quyền được bảo lưu.</p>
+          <p>© 2026 C&T Technology Company. Mọi quyền được bảo lưu.</p>
         </div>
       </footer>
     </div>

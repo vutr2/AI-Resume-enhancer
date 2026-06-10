@@ -226,7 +226,7 @@ export default function HomePage() {
       {/* Footer */}
       <footer className="border-t border-[var(--border)] py-8 px-4">
         <div className="container mx-auto text-center text-[var(--foreground-muted)] text-sm">
-          <p>© 2026 ResuMax VN. Dữ liệu của bạn được bảo mật.</p>
+          <p>© 2026 C&T Technology Company. Dữ liệu của bạn được bảo mật.</p>
         </div>
       </footer>
     </div>
