@@ -4,6 +4,7 @@
   color-scheme: dark;
   --primary: #2563eb;
   --primary-dark: #1d4ed8;
+  --primary-hover: #1d4ed8;
   --primary-light: #3b82f6;
   --secondary: #10b981;
   --secondary-dark: #059669;
@@ -15,6 +16,7 @@
   --background: #0f172a;
   --background-secondary: #1e293b;
   --background-tertiary: #334155;
+  --background-elevated: #1e293b;
   --foreground: #f8fafc;
   --foreground-secondary: #cbd5e1;
   --foreground-muted: #64748b;

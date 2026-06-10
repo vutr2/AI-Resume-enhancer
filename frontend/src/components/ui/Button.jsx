@@ -16,6 +16,7 @@ export default function Button({
   const variants = {
     primary: 'bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] focus:ring-[var(--primary)]',
     secondary: 'bg-[var(--background-secondary)] text-[var(--foreground)] border border-[var(--border)] hover:bg-[var(--background-tertiary)] focus:ring-[var(--primary)]',
+    outline: 'border border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white focus:ring-[var(--primary)]',
     ghost: 'text-[var(--foreground)] hover:bg-[var(--background-secondary)] focus:ring-[var(--primary)]',
     danger: 'bg-[var(--error)] text-white hover:opacity-90 focus:ring-[var(--error)]',
     success: 'bg-[var(--success)] text-white hover:opacity-90 focus:ring-[var(--success)]',
