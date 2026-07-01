@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
 import Payment from '@/models/Payment';
 import User from '@/models/User';
+import Referral from '@/models/Referral';
+import Commission from '@/models/Commission';
+import { COMMISSION_RATE } from '@/lib/affiliate';
 
 // SePay IPN - server-to-server notification
 // SePay sends POST with X-Secret-Key header for authentication
@@ -57,11 +60,41 @@ export async function POST(request) {
       expiresAt.setMonth(expiresAt.getMonth() + 1);
     }
 
-    await User.findByIdAndUpdate(payment.user, {
-      plan: payment.plan,
-      planExpiresAt: expiresAt,
-      updatedAt: now,
-    });
+    const dbUser = await User.findByIdAndUpdate(
+      payment.user,
+      { plan: payment.plan, planExpiresAt: expiresAt, updatedAt: now },
+      { new: true }
+    );
+
+    // Affiliate commission — best-effort, never blocks IPN response
+    if (dbUser?.descopeId) {
+      try {
+        const referral = await Referral.findOne({
+          referredUserId: dbUser.descopeId,
+          status: 'signed_up',
+        });
+        if (referral) {
+          const alreadyCommissioned = await Commission.findOne({ referralId: referral._id });
+          if (!alreadyCommissioned) {
+            const gross = Math.round(payment.amount);
+            await Commission.create({
+              affiliateId: referral.affiliateId,
+              referralId: referral._id,
+              orderId: payment.orderId,
+              grossAmount: gross,
+              commissionAmount: Math.round(gross * COMMISSION_RATE),
+              isFirstPayment: true,
+            });
+            await Referral.updateOne(
+              { _id: referral._id },
+              { status: 'converted', convertedAt: new Date() }
+            );
+          }
+        }
+      } catch (affErr) {
+        console.error('Affiliate commission error (non-fatal):', affErr);
+      }
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

@@ -12,6 +12,9 @@ import {
   Upload,
   PenTool,
   BarChart3,
+  Gift,
+  Share2,
+  Wallet,
 } from 'lucide-react';
 
 export default function HomePage() {
@@ -203,6 +206,67 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Affiliate Section */}
+      <section className="py-20 px-4 bg-[var(--background-secondary)]">
+        <div className="container mx-auto max-w-4xl">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--primary)]/10 text-[var(--primary)] text-sm font-medium mb-4">
+              <Gift className="w-4 h-4" />
+              Chương trình Affiliate
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold text-[var(--foreground)] mb-4">
+              Giới thiệu bạn bè,<br />
+              <span className="text-[var(--primary)]">kiếm 50% hoa hồng</span>
+            </h2>
+            <p className="text-lg text-[var(--foreground-secondary)] max-w-xl mx-auto">
+              Chia sẻ link giới thiệu của bạn. Mỗi người bạn giới thiệu mua gói, bạn nhận ngay 50% doanh thu.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+            {[
+              {
+                icon: <Share2 className="w-6 h-6 text-[var(--primary)]" />,
+                step: '01',
+                title: 'Đăng ký & lấy link',
+                desc: 'Tạo tài khoản ResuMax VN và nhận link giới thiệu riêng của bạn',
+              },
+              {
+                icon: <Gift className="w-6 h-6 text-[var(--primary)]" />,
+                step: '02',
+                title: 'Chia sẻ link',
+                desc: 'Gửi link cho bạn bè, đăng lên mạng xã hội, hoặc viết blog',
+              },
+              {
+                icon: <Wallet className="w-6 h-6 text-[var(--primary)]" />,
+                step: '03',
+                title: 'Nhận tiền tự động',
+                desc: 'Hoa hồng tự động tính, chi trả 2 tuần/lần qua chuyển khoản',
+              },
+            ].map((item) => (
+              <div key={item.step} className="card text-center">
+                <div className="w-12 h-12 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center mx-auto mb-4">
+                  {item.icon}
+                </div>
+                <p className="text-xs font-bold text-[var(--primary)] tracking-widest mb-2">BƯỚC {item.step}</p>
+                <h3 className="font-semibold text-[var(--foreground)] mb-2">{item.title}</h3>
+                <p className="text-sm text-[var(--foreground-secondary)]">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="text-center">
+            <Link href="/affiliate/register" className="btn btn-primary text-lg px-8 py-3">
+              Tham gia ngay — miễn phí
+              <ArrowRight className="w-5 h-5 ml-2" />
+            </Link>
+            <p className="mt-3 text-sm text-[var(--foreground-muted)]">
+              Cookie tracking 30 ngày · Không giới hạn số lần giới thiệu
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="py-20 px-4">
         <div className="container mx-auto max-w-3xl">
@@ -227,6 +291,11 @@ export default function HomePage() {
       <footer className="border-t border-[var(--border)] py-8 px-4">
         <div className="container mx-auto text-center text-[var(--foreground-muted)] text-sm">
           <p>© 2026 C&T Technology Company. Dữ liệu của bạn được bảo mật.</p>
+          <p className="mt-2">
+            <Link href="/affiliate/register" className="hover:text-[var(--foreground)] transition-colors">
+              Chương trình Affiliate →
+            </Link>
+          </p>
         </div>
       </footer>
     </div>

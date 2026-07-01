@@ -12,7 +12,8 @@ import CoverLetterTab from './tabs/CoverLetterTab';
 import { useResumeStore } from '@/store/useResumeStore';
 import { useDashboard } from '@/contexts/DashboardContext';
 import Card from '@/components/ui/Card';
-import { FileText, TrendingUp, Target, Clock, Loader2 } from 'lucide-react';
+import { FileText, TrendingUp, Target, Clock, Loader2, Gift } from 'lucide-react';
+import Link from 'next/link';
 import toast from 'react-hot-toast';
 
 function DashboardPageContent() {
@@ -228,6 +229,22 @@ function DashboardPageContent() {
                 </button>
               </div>
             </div>
+
+            {/* Referral Banner */}
+            <Link href="/affiliate/register">
+              <div className="flex items-center justify-between p-5 rounded-xl bg-gradient-to-r from-[var(--primary)] to-blue-500 text-white hover:opacity-95 transition-opacity cursor-pointer">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
+                    <Gift className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="font-semibold">Giới thiệu bạn bè, kiếm tiền ngay</p>
+                    <p className="text-sm opacity-85 mt-0.5">Nhận <strong>50% hoa hồng</strong> cho mỗi người bạn giới thiệu mua gói</p>
+                  </div>
+                </div>
+                <span className="text-sm font-medium opacity-90 shrink-0 ml-4">Tham gia →</span>
+              </div>
+            </Link>
 
             {/* Recent Activity */}
             <div>

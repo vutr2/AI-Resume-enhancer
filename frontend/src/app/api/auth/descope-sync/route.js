@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { getDescopeClient } from '@/lib/descope';
 import { getUserPlan } from '@/lib/plans';
+import dbConnect from '@/lib/db';
+import Affiliate from '@/models/Affiliate';
+import Referral from '@/models/Referral';
 
 // POST /api/auth/descope-sync
 // Sync Descope user with our MongoDB database
@@ -109,6 +112,25 @@ export async function POST(request) {
 
       const result = await usersCollection.insertOne(newUser);
       user = { ...newUser, _id: result.insertedId };
+
+      // Affiliate referral tracking — runs best-effort, never blocks signup
+      try {
+        const affRef = request.cookies.get('aff_ref')?.value;
+        if (affRef) {
+          await dbConnect();
+          const affiliate = await Affiliate.findOne({ refCode: affRef, status: 'active' }).lean();
+          if (affiliate && affiliate.descopeUserId !== userId) {
+            await Referral.create({
+              affiliateId: affiliate._id,
+              refCode: affRef,
+              referredUserId: userId,
+              signedUpAt: new Date(),
+            });
+          }
+        }
+      } catch (affErr) {
+        console.error('Affiliate referral tracking error (non-fatal):', affErr);
+      }
     }
 
     // For existing users without onboardingCompleted field, consider them completed
@@ -117,7 +139,7 @@ export async function POST(request) {
 
     const plan = getUserPlan(user);
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       data: {
         user: {
@@ -133,6 +155,13 @@ export async function POST(request) {
         isNewUser,
       }
     });
+
+    // Clear affiliate cookie after it's been consumed by a new signup
+    if (isNewUser) {
+      response.cookies.delete('aff_ref');
+    }
+
+    return response;
   } catch (error) {
     console.error('Descope sync error:', error);
     return NextResponse.json(
