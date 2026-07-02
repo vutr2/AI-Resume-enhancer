@@ -19,6 +19,7 @@ import {
   Crown,
   Zap,
   Lock,
+  Gift,
 } from 'lucide-react';
 import { useResumeStore } from '@/store/useResumeStore';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -37,6 +38,12 @@ const mainMenuItems = [
     label: 'CV của tôi',
     icon: FolderOpen,
     href: '/dashboard/resumes',
+  },
+  {
+    id: 'affiliate',
+    label: 'Affiliate',
+    icon: Gift,
+    href: '/affiliate/dashboard',
   },
 ];
 
