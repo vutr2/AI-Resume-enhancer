@@ -4,6 +4,7 @@ import dbConnect from '@/lib/db';
 import Payment from '@/models/Payment';
 import User from '@/models/User';
 import { getCurrentUser } from '@/lib/auth';
+import { rateLimitMiddleware } from '@/lib/rateLimit';
 
 const PLAN_PRICES = {
   pro: { monthly: 99000, yearly: 990000 },
@@ -23,6 +24,11 @@ export async function POST(request) {
         { success: false, message: 'Vui lòng đăng nhập' },
         { status: 401 }
       );
+    }
+
+    const rateLimitResult = await rateLimitMiddleware(request, decoded.descopeId, 'general');
+    if (rateLimitResult.limited) {
+      return NextResponse.json(rateLimitResult.response, { status: rateLimitResult.status, headers: rateLimitResult.headers });
     }
 
     const { planId, billingCycle } = await request.json();

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
+import { rateLimitMiddleware } from '@/lib/rateLimit';
 import dbConnect from '@/lib/db';
 import Affiliate from '@/models/Affiliate';
 import { generateRefCode } from '@/lib/affiliate';
@@ -10,6 +11,11 @@ export async function POST(request) {
     const user = await getCurrentUser();
     if (!user) {
       return NextResponse.json({ success: false, message: 'Vui lòng đăng nhập' }, { status: 401 });
+    }
+
+    const rateLimitResult = await rateLimitMiddleware(request, user.descopeId, 'auth');
+    if (rateLimitResult.limited) {
+      return NextResponse.json(rateLimitResult.response, { status: rateLimitResult.status, headers: rateLimitResult.headers });
     }
 
     const { bankName, accountNumber, accountHolder } = await request.json();

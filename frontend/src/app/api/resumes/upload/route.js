@@ -27,7 +27,7 @@ export async function POST(request) {
     }
 
     // Rate limiting - 10 uploads per minute
-    const rateLimitResult = rateLimitMiddleware(request, decoded.descopeId, 'upload');
+    const rateLimitResult = await rateLimitMiddleware(request, decoded.descopeId, 'upload');
     if (rateLimitResult.limited) {
       return NextResponse.json(rateLimitResult.response, {
         status: rateLimitResult.status,

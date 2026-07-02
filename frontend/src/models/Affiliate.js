@@ -41,8 +41,6 @@ const affiliateSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-affiliateSchema.index({ refCode: 1 }, { unique: true });
-
 const Affiliate = mongoose.models.Affiliate || mongoose.model('Affiliate', affiliateSchema);
 
 export default Affiliate;

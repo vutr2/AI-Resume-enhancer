@@ -18,7 +18,7 @@ export async function POST(request) {
       );
     }
 
-    const rateLimitResult = rateLimitMiddleware(request, decoded.descopeId, 'ai');
+    const rateLimitResult = await rateLimitMiddleware(request, decoded.descopeId, 'ai');
     if (rateLimitResult.limited) {
       return NextResponse.json(rateLimitResult.response, {
         status: rateLimitResult.status,

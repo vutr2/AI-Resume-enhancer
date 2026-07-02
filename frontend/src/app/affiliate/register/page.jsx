@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useSession, useUser } from '@descope/nextjs-sdk/client';
-import { Copy, Check, Users } from 'lucide-react';
+import { Copy, Check, Users, ArrowLeft } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
@@ -76,6 +76,14 @@ export default function AffiliateRegisterPage() {
   return (
     <div className="min-h-screen bg-[var(--background)] py-12 px-4">
       <div className="max-w-lg mx-auto">
+        <Link
+          href="/dashboard"
+          className="inline-flex items-center gap-2 text-sm text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-colors mb-6"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Về Dashboard
+        </Link>
+
         <div className="flex items-center gap-3 mb-8">
           <div className="w-10 h-10 rounded-xl bg-[var(--primary)] flex items-center justify-center">
             <Users className="w-5 h-5 text-white" />

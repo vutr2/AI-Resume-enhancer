@@ -55,6 +55,7 @@ export async function GET() {
           email: affiliate.email,
           status: affiliate.status,
           payoutInfo: affiliate.payoutInfo,
+          joinedAt: affiliate.createdAt,
         },
         stats: {
           signedUp,

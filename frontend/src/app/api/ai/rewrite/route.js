@@ -16,7 +16,7 @@ export async function POST(request) {
     }
 
     // Rate limiting - 5 requests per minute per user
-    const rateLimitResult = rateLimitMiddleware(request, decoded.descopeId, 'ai');
+    const rateLimitResult = await rateLimitMiddleware(request, decoded.descopeId, 'ai');
     if (rateLimitResult.limited) {
       return NextResponse.json(rateLimitResult.response, {
         status: rateLimitResult.status,
