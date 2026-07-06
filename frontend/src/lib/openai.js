@@ -77,7 +77,15 @@ Chỉ trả về JSON, không có text khác. Nếu không tìm thấy thông ti
     "contentScore": 0-100,
     "formatScore": 0-100,
     "keywordScore": 0-100,
-    "readabilityScore": 0-100
+    "readabilityScore": 0-100,
+    "fdiScore": 0-100
+  },
+  "fdiReadiness": {
+    "englishQuality": "poor/fair/good/excellent",
+    "hasQuantifiedAchievements": true/false,
+    "formatIsAtsClean": true/false,
+    "hasFdiKeywords": true/false,
+    "summary": "Nhận xét ngắn về mức độ sẵn sàng apply FDI"
   },
   "strengths": ["Điểm mạnh 1", "Điểm mạnh 2"],
   "weaknesses": ["Điểm yếu 1", "Điểm yếu 2"],
@@ -97,6 +105,7 @@ Chỉ trả về JSON, không có text khác. Nếu không tìm thấy thông ti
   ]
 }
 
+fdiScore (0-100) được tính dựa trên: chất lượng tiếng Anh (30%), có số liệu định lượng (25%), format ATS-clean (25%), từ khóa ngành FDI (20%).
 Đánh giá khách quan, chi tiết và đưa ra gợi ý cụ thể để cải thiện CV.`,
 
   rewriteContent: `Bạn là chuyên gia viết CV chuyên nghiệp. Viết lại CV thành văn bản hoàn chỉnh, chuyên nghiệp, sẵn sàng in ấn.
@@ -120,12 +129,39 @@ Trả về JSON:
 
 LƯU Ý: rewrittenContent phải là văn bản CV hoàn chỉnh, KHÔNG phải JSON. Phải có format rõ ràng với sections, bullet points (•), và xuống dòng (\\n).`,
 
-  generateCoverLetter: `Bạn là chuyên gia viết thư ứng tuyển. Tạo thư ứng tuyển chuyên nghiệp bằng tiếng Việt với:
+  rewriteFDIEnglish: `You are an expert CV writer specializing in English CVs for FDI companies (Samsung, LG, Foxconn, Canon, Amkor, Goertek) operating in Vietnam.
+
+RULES — follow strictly:
+1. Write in professional business English. NEVER translate word-by-word from Vietnamese. Rewrite naturally.
+2. Every bullet point must start with a strong action verb (Led, Implemented, Achieved, Reduced, Increased, Managed, Developed, Ensured, Coordinated, Monitored...).
+3. Quantify achievements wherever possible (%, VND amounts converted to USD, headcount, time saved, defect rates).
+4. Format: single column, no icons, no colors, no tables — pure ATS-safe plain text.
+5. Section order: PERSONAL INFORMATION → OBJECTIVE → EDUCATION → WORK EXPERIENCE → SKILLS → CERTIFICATIONS
+6. Objective section (2-3 sentences): highlight discipline, process adherence, teamwork, ability to work under pressure, willingness to work shifts/OT if mentioned.
+7. Skills section: separate Technical Skills from Soft Skills. Include language proficiency (e.g., "English: Intermediate (B1)").
+8. Keep CV to 1 page for candidates with < 3 years experience, max 2 pages otherwise.
+9. Do NOT invent experience or numbers. If no data is provided for a bullet, write the responsibility clearly without fake numbers.
+
+Return JSON:
+{
+  "rewrittenContent": "Complete CV in plain text with \\n line breaks and • bullet points",
+  "changes": ["Change 1 in Vietnamese", "Change 2 in Vietnamese"],
+  "improvements": ["Improvement 1 in Vietnamese", "Improvement 2 in Vietnamese"],
+  "fdiTips": ["FDI-specific tip 1 in Vietnamese", "FDI-specific tip 2 in Vietnamese"]
+}
+
+rewrittenContent must be the full CV text, NOT JSON inside JSON.`,
+
+  generateCoverLetter: `Bạn là chuyên gia viết thư ứng tuyển. Tạo thư ứng tuyển chuyên nghiệp với:
 1. Mở đầu hấp dẫn, nêu rõ vị trí ứng tuyển
 2. Thân bài: liên kết kinh nghiệm với yêu cầu công việc
 3. Kết thúc: thể hiện sự nhiệt tình và kêu gọi hành động
-4. Giọng điệu chuyên nghiệp nhưng thân thiện
-5. Độ dài 300-400 từ
+4. Độ dài 300-400 từ
+
+Nếu tone là "korean-fdi": viết bằng tiếng Anh, nhấn mạnh kỷ luật, tinh thần đồng đội, sẵn sàng làm việc áp lực cao và OT, trung thành với tổ chức, tránh quá cá nhân.
+Nếu tone là "japanese-fdi": viết bằng tiếng Anh, nhấn mạnh sự tỉ mỉ, cải tiến liên tục (kaizen), tôn trọng quy trình, khiêm tốn, cam kết dài hạn.
+Nếu tone là "western-fdi": viết bằng tiếng Anh, thể hiện tư duy độc lập, thành tích cá nhân, sáng tạo, trực tiếp và tự tin.
+Các tone khác: viết bằng tiếng Việt, giọng chuyên nghiệp nhưng thân thiện.
 
 Trả về JSON:
 {
@@ -135,15 +171,15 @@ Trả về JSON:
 
   matchJob: `Bạn là chuyên gia tuyển dụng. Đánh giá mức độ phù hợp giữa CV và mô tả công việc.
 
-Trả về JSON:
+Trả về JSON (nhận xét bằng tiếng Việt, từ khóa kỹ thuật/chuyên ngành giữ nguyên tiếng Anh):
 {
   "matchScore": 0-100,
-  "matchedSkills": ["Kỹ năng phù hợp"],
-  "missingSkills": ["Kỹ năng còn thiếu"],
-  "matchedExperience": ["Kinh nghiệm phù hợp"],
-  "gaps": ["Khoảng cách cần bù đắp"],
-  "recommendations": ["Gợi ý để tăng độ phù hợp"],
-  "interviewTips": ["Mẹo phỏng vấn cho vị trí này"]
+  "matchedSkills": ["English keyword 1", "English keyword 2"],
+  "missingSkills": ["English keyword còn thiếu"],
+  "matchedExperience": ["Kinh nghiệm phù hợp (mô tả tiếng Việt)"],
+  "gaps": ["Khoảng cách cần bù đắp (tiếng Việt)"],
+  "recommendations": ["Gợi ý cụ thể để tăng độ phù hợp (tiếng Việt)"],
+  "interviewTips": ["Mẹo phỏng vấn cho vị trí này (tiếng Việt)"]
 }`,
 };
 

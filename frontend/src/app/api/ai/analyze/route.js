@@ -118,6 +118,7 @@ export async function POST(request) {
         formatScore: Number(scoresData?.formatScore) || Number(scoresData?.scores?.formatScore) || 0,
         keywordScore: Number(scoresData?.keywordScore) || Number(scoresData?.scores?.keywordScore) || 0,
         readabilityScore: Number(scoresData?.readabilityScore) || Number(scoresData?.scores?.readabilityScore) || 0,
+        fdiScore: Number(scoresData?.fdiScore) || Number(scoresData?.scores?.fdiScore) || 0,
       };
 
       // Validate: nếu tất cả scores = 0, có nghĩa là AI response không hợp lệ
@@ -141,6 +142,7 @@ export async function POST(request) {
         suggestions: analysis.suggestions || [],
         keywords: analysis.keywords || { found: [], missing: [], recommended: [] },
         atsIssues: normalizedAtsIssues,
+        fdiReadiness: analysis.fdiReadiness || null,
       };
       resume.status = 'analyzed';
       await resume.save();

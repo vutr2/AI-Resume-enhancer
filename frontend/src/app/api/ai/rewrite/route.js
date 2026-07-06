@@ -47,7 +47,7 @@ export async function POST(request) {
     }
 
     const body = await request.json();
-    const { content, contentType, targetJob } = body;
+    const { content, contentType, targetJob, mode } = body;
 
     if (!content) {
       return NextResponse.json(
@@ -134,14 +134,17 @@ export async function POST(request) {
     }
 
     // Build rewrite prompt
-    let rewritePrompt = `Viết lại CV sau thành văn bản hoàn chỉnh, chuyên nghiệp:\n\n${formattedCV}`;
-    if (targetJob) {
+    const isFDIMode = mode === 'fdi-english';
+    let rewritePrompt = isFDIMode
+      ? `Rewrite this CV into a professional English CV for FDI companies:\n\n${formattedCV}`
+      : `Viết lại CV sau thành văn bản hoàn chỉnh, chuyên nghiệp:\n\n${formattedCV}`;
+    if (!isFDIMode && targetJob) {
       rewritePrompt += `\n\nYêu cầu style: ${targetJob}`;
     }
 
     try {
       const result = await callOpenAI(
-        SYSTEM_PROMPTS.rewriteContent,
+        isFDIMode ? SYSTEM_PROMPTS.rewriteFDIEnglish : SYSTEM_PROMPTS.rewriteContent,
         rewritePrompt
       );
 

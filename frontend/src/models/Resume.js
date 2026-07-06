@@ -124,6 +124,7 @@ const resumeSchema = new mongoose.Schema(
       formatScore: { type: Number, default: 0 },
       keywordScore: { type: Number, default: 0 },
       readabilityScore: { type: Number, default: 0 },
+      fdiScore: { type: Number, default: 0 },
     },
     analysis: {
       strengths: [String],
@@ -142,6 +143,13 @@ const resumeSchema = new mongoose.Schema(
           suggestion: { type: String },
         },
       ],
+      fdiReadiness: {
+        englishQuality: { type: String, enum: ['poor', 'fair', 'good', 'excellent'] },
+        hasQuantifiedAchievements: { type: Boolean },
+        formatIsAtsClean: { type: Boolean },
+        hasFdiKeywords: { type: Boolean },
+        summary: { type: String },
+      },
     },
     versions: [
       {

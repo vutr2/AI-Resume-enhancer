@@ -15,45 +15,68 @@ import {
   Gift,
   Share2,
   Wallet,
+  GraduationCap,
+  HardHat,
+  Briefcase,
+  Languages,
+  Star,
 } from 'lucide-react';
 
 export default function HomePage() {
   const features = [
     {
-      icon: <Upload className="w-8 h-8 text-[var(--primary)]" />,
-      title: 'Phân tích CV thông minh',
+      icon: <PenTool className="w-8 h-8 text-[var(--primary)]" />,
+      title: 'Viết CV tiếng Anh từ CV tiếng Việt',
       description:
-        'Upload PDF, DOCX hoặc dán văn bản. AI tự động nhận diện và trích xuất thông tin.',
+        'Không phải dịch máy — AI viết lại hoàn toàn bằng business English chuẩn, đúng cách HR nước ngoài đọc hồ sơ.',
     },
     {
-      icon: <PenTool className="w-8 h-8 text-[var(--secondary)]" />,
-      title: 'Viết lại chuyên nghiệp',
+      icon: <CheckCircle className="w-8 h-8 text-[var(--secondary)]" />,
+      title: 'Kiểm tra ATS chuẩn FDI',
       description:
-        'Viết lại CV theo phong cách: Fresher, Senior, Manager. Tự động tối ưu từ ngữ.',
+        'Phát hiện lỗi format, thiếu từ khóa và cấu trúc không vượt được hệ thống lọc ATS của các tập đoàn lớn.',
     },
     {
       icon: <Target className="w-8 h-8 text-[var(--accent)]" />,
-      title: 'So khớp Job Description',
+      title: 'So khớp JD Samsung / LG / Foxconn',
       description:
-        'Chấm điểm CV vs JD. Gợi ý từ khóa và cách viết lại để khớp hơn.',
+        'Dán tin tuyển dụng vào, AI chỉ ra CV còn thiếu từ khóa gì và cách bổ sung để khớp JD hơn.',
     },
     {
-      icon: <CheckCircle className="w-8 h-8 text-[var(--success)]" />,
-      title: 'Kiểm tra ATS',
+      icon: <BarChart3 className="w-8 h-8 text-[var(--success)]" />,
+      title: 'Điểm FDI-Readiness',
       description:
-        'Phát hiện vấn đề định dạng, gợi ý sửa lỗi để CV vượt qua hệ thống ATS.',
+        'Chấm điểm mức độ sẵn sàng apply FDI: tiếng Anh, số liệu định lượng, format, từ khóa ngành sản xuất/kỹ thuật.',
     },
     {
       icon: <FileText className="w-8 h-8 text-[var(--info)]" />,
-      title: 'Tạo thư ứng tuyển',
+      title: 'Cover letter 3 phong cách FDI',
       description:
-        'Tạo cover letter chuẩn Việt Nam: trang trọng, startup, cấp cao.',
+        'Tạo thư ứng tuyển tiếng Anh theo giọng tập đoàn Hàn Quốc, Nhật Bản hoặc Âu-Mỹ — đúng văn hóa công ty.',
     },
     {
-      icon: <BarChart3 className="w-8 h-8 text-[var(--error)]" />,
-      title: 'Chấm điểm chi tiết',
+      icon: <Languages className="w-8 h-8 text-[var(--error)]" />,
+      title: 'Từ vựng ngành tiếng Anh',
       description:
-        'Điểm ATS, kỹ năng khớp, độc hiểu, phù hợp cấp bậc. Giải thích rõ ràng.',
+        'Gợi ý từ khóa tiếng Anh chuẩn cho sản xuất, QA/QC, kỹ thuật, logistics, văn phòng FDI.',
+    },
+  ];
+
+  const personas = [
+    {
+      icon: <GraduationCap className="w-7 h-7 text-[var(--primary)]" />,
+      title: 'Sinh viên mới ra trường',
+      desc: 'Muốn apply thẳng vào FDI nhưng chưa biết viết CV tiếng Anh chuẩn. AI giúp biến CV tiếng Việt thành hồ sơ đủ chuẩn nộp Samsung, Canon, Amkor.',
+    },
+    {
+      icon: <HardHat className="w-7 h-7 text-[var(--secondary)]" />,
+      title: 'Kỹ sư / Kỹ thuật viên',
+      desc: 'Đang làm công ty Việt, muốn nhảy sang FDI lương cao hơn 30-50%. CV tiếng Việt tốt nhưng bản tiếng Anh chưa đủ chuẩn để qua vòng lọc HR.',
+    },
+    {
+      icon: <Briefcase className="w-7 h-7 text-[var(--accent)]" />,
+      title: 'Nhân viên văn phòng',
+      desc: 'Apply vị trí Admin, HR, Purchasing, Logistics tại FDI — các vị trí yêu cầu tiếng Anh giao tiếp và CV tiếng Anh chuyên nghiệp.',
     },
   ];
 
@@ -86,29 +109,25 @@ export default function HomePage() {
       {/* Hero Section */}
       <section className="py-20 px-4">
         <div className="container mx-auto max-w-4xl text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 text-white text-sm font-medium mb-6">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 text-[var(--primary)] text-sm font-medium mb-6">
             <Sparkles className="w-4 h-4" />
-            Powered by AI
+            AI được huấn luyện theo chuẩn HR FDI
           </div>
 
           <h1 className="text-4xl md:text-6xl font-bold text-[var(--foreground)] mb-6 leading-tight">
-            Tối ưu hóa CV
+            CV tiếng Anh chuẩn FDI
             <br />
-            <span className="text-[var(--primary)]">
-              cho thị trường Việt Nam
-            </span>
+            <span className="text-[var(--primary)]">trong 5 phút</span>
           </h1>
 
           <p className="text-xl text-[var(--foreground-secondary)] mb-8 max-w-2xl mx-auto leading-relaxed">
-            AI hiểu văn hóa tuyển dụng Việt Nam. Phân tích, viết lại CV và tạo
-            thư ứng tuyển chuyên nghiệp trong vài phút.
+            AI được huấn luyện theo cách HR Samsung, LG, Foxconn, Canon đọc hồ sơ —
+            viết CV tiếng Anh chuyên nghiệp, vượt vòng lọc ATS, đúng khẩu vị
+            nhà tuyển dụng FDI.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link
-              href="/register"
-              className="btn btn-primary text-lg px-8 py-3"
-            >
+            <Link href="/register" className="btn btn-primary text-lg px-8 py-3">
               Bắt đầu miễn phí
               <ArrowRight className="w-5 h-5 ml-2" />
             </Link>
@@ -118,32 +137,60 @@ export default function HomePage() {
           </div>
 
           <p className="mt-6 text-sm text-[var(--foreground-muted)]">
-            5 lượt miễn phí. Không cần thẻ tín dụng.
+            5 lượt miễn phí · Không cần thẻ tín dụng
           </p>
+
+          {/* Social proof badges */}
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-3 text-sm text-[var(--foreground-muted)]">
+            {['Samsung', 'LG', 'Foxconn', 'Canon', 'Amkor', 'Goertek'].map((co) => (
+              <span key={co} className="px-3 py-1 rounded-full border border-[var(--border)] text-xs">
+                {co}
+              </span>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* "Dành cho ai" Section */}
+      <section className="py-16 px-4 bg-[var(--background-secondary)]">
+        <div className="container mx-auto max-w-5xl">
+          <div className="text-center mb-12">
+            <h2 className="text-2xl md:text-3xl font-bold text-[var(--foreground)] mb-3">
+              Dành cho ai?
+            </h2>
+            <p className="text-[var(--foreground-secondary)]">
+              ResuMax VN được tạo ra cho người Việt muốn vào công ty FDI
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {personas.map((p) => (
+              <div key={p.title} className="card">
+                <div className="w-12 h-12 rounded-xl bg-[var(--background)] flex items-center justify-center mb-4">
+                  {p.icon}
+                </div>
+                <h3 className="font-semibold text-[var(--foreground)] mb-2">{p.title}</h3>
+                <p className="text-sm text-[var(--foreground-secondary)] leading-relaxed">{p.desc}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section
-        id="features"
-        className="py-20 px-4 bg-[var(--background-secondary)]"
-      >
+      <section id="features" className="py-20 px-4">
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-[var(--foreground)] mb-4">
               Tính năng nổi bật
             </h2>
             <p className="text-lg text-[var(--foreground-secondary)]">
-              Mọi thứ bạn cần để có CV hoàn hảo
+              Mọi thứ bạn cần để có CV tiếng Anh vượt ATS của FDI
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature, index) => (
-              <div
-                key={index}
-                className="card hover:shadow-lg transition-shadow"
-              >
+              <div key={index} className="card hover:shadow-lg transition-shadow">
                 <div className="w-14 h-14 rounded-xl bg-[var(--background-secondary)] flex items-center justify-center mb-4">
                   {feature.icon}
                 </div>
@@ -160,7 +207,7 @@ export default function HomePage() {
       </section>
 
       {/* Benefits Section */}
-      <section className="py-20 px-4">
+      <section className="py-20 px-4 bg-[var(--background-secondary)]">
         <div className="container mx-auto max-w-4xl">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-[var(--foreground)] mb-4">
@@ -170,36 +217,36 @@ export default function HomePage() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center">
-              <div className="w-12 h-12 rounded-full bg-[var(--primary)] bg-opacity-10 text-[var(--primary)] flex items-center justify-center mx-auto mb-4">
-                <Sparkles className="w-6 h-6" />
+              <div className="w-12 h-12 rounded-full bg-[var(--primary)]/10 flex items-center justify-center mx-auto mb-4">
+                <Star className="w-6 h-6 text-[var(--primary)]" />
               </div>
               <h3 className="font-semibold text-[var(--foreground)] mb-2">
-                AI hiểu tiếng Việt
+                Khẩu vị HR Hàn / Nhật
               </h3>
               <p className="text-sm text-[var(--foreground-secondary)]">
-                Không dịch từ tiếng Anh, tư duy bằng tiếng Việt
+                AI hiểu văn hóa tuyển dụng FDI — ngắn gọn, số liệu, kỷ luật, quy trình
               </p>
             </div>
             <div className="text-center">
-              <div className="w-12 h-12 rounded-full bg-[var(--primary)] bg-opacity-10 text-[var(--primary)] flex items-center justify-center mx-auto mb-4">
-                <Shield className="w-6 h-6" />
+              <div className="w-12 h-12 rounded-full bg-[var(--primary)]/10 flex items-center justify-center mx-auto mb-4">
+                <Shield className="w-6 h-6 text-[var(--primary)]" />
               </div>
               <h3 className="font-semibold text-[var(--foreground)] mb-2">
                 Bảo mật dữ liệu
               </h3>
               <p className="text-sm text-[var(--foreground-secondary)]">
-                CV của bạn được mã hóa và xóa theo yêu cầu
+                CV của bạn được mã hóa và xóa theo yêu cầu, không chia sẻ bên thứ ba
               </p>
             </div>
             <div className="text-center">
-              <div className="w-12 h-12 rounded-full bg-[var(--primary)] bg-opacity-10 text-[var(--primary)] flex items-center justify-center mx-auto mb-4">
-                <Zap className="w-6 h-6" />
+              <div className="w-12 h-12 rounded-full bg-[var(--primary)]/10 flex items-center justify-center mx-auto mb-4">
+                <Zap className="w-6 h-6 text-[var(--primary)]" />
               </div>
               <h3 className="font-semibold text-[var(--foreground)] mb-2">
-                Xử lý nhanh
+                Kết quả trong 5 phút
               </h3>
               <p className="text-sm text-[var(--foreground-secondary)]">
-                Phân tích và viết lại CV trong vài giây
+                Upload CV tiếng Việt, nhận CV tiếng Anh chuẩn FDI ngay lập tức
               </p>
             </div>
           </div>
@@ -207,7 +254,7 @@ export default function HomePage() {
       </section>
 
       {/* Affiliate Section */}
-      <section className="py-20 px-4 bg-[var(--background-secondary)]">
+      <section className="py-20 px-4">
         <div className="container mx-auto max-w-4xl">
           <div className="text-center mb-12">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--primary)]/10 text-[var(--primary)] text-sm font-medium mb-4">
@@ -268,14 +315,14 @@ export default function HomePage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-4">
+      <section className="py-20 px-4 bg-[var(--background-secondary)]">
         <div className="container mx-auto max-w-3xl">
           <div className="card bg-[var(--primary)] text-white text-center p-12 rounded-2xl">
             <h2 className="text-3xl font-bold mb-4">
-              Sẵn sàng tối ưu CV của bạn?
+              Sẵn sàng apply FDI?
             </h2>
             <p className="text-lg opacity-90 mb-8">
-              Đăng ký miễn phí và nhận ngay 5 lượt sử dụng.
+              Đăng ký miễn phí, nhận ngay 5 lượt tạo CV tiếng Anh chuẩn FDI.
             </p>
             <Link
               href="/register"
