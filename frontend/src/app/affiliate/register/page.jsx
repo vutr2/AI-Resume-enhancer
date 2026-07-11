@@ -9,6 +9,7 @@ import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import toast from 'react-hot-toast';
+import { trackLead } from '@/lib/pixel';
 
 export default function AffiliateRegisterPage() {
   const router = useRouter();
@@ -42,6 +43,7 @@ export default function AffiliateRegisterPage() {
       const data = await res.json();
       if (data.success) {
         setResult(data.data);
+        trackLead();
         toast.success('Đăng ký thành công!');
       } else if (res.status === 409) {
         toast.error('Bạn đã đăng ký affiliate rồi.');

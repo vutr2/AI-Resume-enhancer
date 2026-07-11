@@ -14,6 +14,7 @@ import {
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import { useAuthStore } from '@/store/useAuthStore';
+import { trackPurchase } from '@/lib/pixel';
 
 function CallbackContent() {
   const router = useRouter();
@@ -22,6 +23,7 @@ function CallbackContent() {
 
   const urlStatus = searchParams.get('status');
   const urlMessage = searchParams.get('message');
+  const urlAmount  = searchParams.get('amount');
 
   const status = urlStatus || 'loading';
   const message =
@@ -37,12 +39,14 @@ function CallbackContent() {
 
   useEffect(() => {
     if (status === 'success') {
+      const amount = urlAmount ? Number(urlAmount) : undefined;
+      if (amount) trackPurchase({ value: amount, currency: 'VND' });
       const timer = setTimeout(() => {
         loadUserProfile();
       }, 1500);
       return () => clearTimeout(timer);
     }
-  }, [status, loadUserProfile]);
+  }, [status, urlAmount, loadUserProfile]);
 
   return (
     <div className="min-h-screen bg-[var(--background)] flex items-center justify-center p-4">

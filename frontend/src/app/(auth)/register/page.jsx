@@ -8,6 +8,7 @@ import { useSession } from '@descope/nextjs-sdk/client';
 import { FileText } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import toast from 'react-hot-toast';
+import { trackCompleteRegistration } from '@/lib/pixel';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -45,6 +46,7 @@ export default function RegisterPage() {
 
           // New user always goes to onboarding
           if (data.data?.isNewUser || data.data?.user?.onboardingCompleted === false) {
+            trackCompleteRegistration();
             router.push('/onboarding');
             return;
           }

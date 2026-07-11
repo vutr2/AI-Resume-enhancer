@@ -18,6 +18,7 @@ import Card from '@/components/ui/Card';
 import { useAuthStore } from '@/store/useAuthStore';
 import api from '@/lib/api';
 import toast from 'react-hot-toast';
+import { trackInitiateCheckout } from '@/lib/pixel';
 
 const plans = {
   pro: {
@@ -57,6 +58,7 @@ function PaymentContent() {
       return;
     }
 
+    trackInitiateCheckout({ value: price });
     setIsProcessing(true);
     try {
       const response = await api.createSePayOrder(planId, cycle);
