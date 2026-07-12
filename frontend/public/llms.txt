@@ -1,0 +1,23 @@
+# ResuMax VN
+
+> AI tạo CV tiếng Anh chuẩn FDI trong 5 phút, tối ưu ATS cho Samsung, LG, Foxconn, Canon.
+
+ResuMax VN giúp người Việt viết CV tiếng Anh chuyên nghiệp để apply vào các công ty FDI (Samsung, LG, Foxconn, Canon, Amkor, Goertek). AI phân tích CV, chấm điểm ATS, viết lại theo chuẩn HR nước ngoài, và tạo cover letter.
+
+## Tính năng chính
+
+- Viết CV tiếng Anh từ CV tiếng Việt (không phải dịch máy)
+- Kiểm tra ATS score và FDI-Readiness score
+- So khớp CV với Job Description
+- Tạo cover letter theo phong cách Hàn/Nhật/Âu-Mỹ
+- Chương trình Affiliate — hoa hồng 50%
+
+## Đối tượng
+
+Sinh viên, kỹ sư, nhân viên văn phòng muốn apply vào công ty FDI tại Việt Nam.
+
+## Liên kết
+
+- [Trang chủ](https://www.cttech.ltd)
+- [Đăng ký miễn phí](https://www.cttech.ltd/register)
+- [Bảng giá](https://www.cttech.ltd/pricing)
