@@ -117,12 +117,27 @@ export async function POST(request) {
     }
 
     // Return only 2 top fixes — detailed analysis is gated behind registration
+    // Sanitize to plain strings to avoid cyclic-structure serialization errors
     const allSuggestions = analysis.suggestions || [];
-    const topFixes = allSuggestions.slice(0, 2);
+    const topFixes = allSuggestions.slice(0, 2).map((fix) =>
+      typeof fix === 'string'
+        ? fix
+        : String(fix?.suggestion || fix?.text || fix?.description || fix?.content || '')
+    ).filter(Boolean);
 
     return NextResponse.json({
       success: true,
-      data: { scores, topFixes },
+      data: {
+        scores: {
+          overall:      scores.overall,
+          atsScore:     scores.atsScore,
+          contentScore: scores.contentScore,
+          formatScore:  scores.formatScore,
+          keywordScore: scores.keywordScore,
+          fdiScore:     scores.fdiScore,
+        },
+        topFixes,
+      },
     });
   } catch (error) {
     console.error('score-public error:', error);

@@ -85,7 +85,11 @@ export default function ResumeScoreWidget() {
         return;
       }
       const payload = { ...data.data, fileName: file.name };
-      sessionStorage.setItem(SESSION_KEY, JSON.stringify(payload));
+      try {
+        sessionStorage.setItem(SESSION_KEY, JSON.stringify(payload));
+      } catch {
+        // non-critical — result still shows without cache
+      }
       setResult(payload);
       setState('result');
     } catch {
