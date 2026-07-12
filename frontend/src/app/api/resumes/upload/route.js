@@ -73,9 +73,8 @@ export async function POST(request) {
     // Parse PDF
     if (file.type === 'application/pdf') {
       try {
-        const pdfParse = (await import('pdf-parse')).default;
-        const pdfData = await pdfParse(buffer);
-        rawText = pdfData.text;
+        const { extractPdfText } = await import('@/lib/parsePdf');
+        rawText = await extractPdfText(buffer);
 
         // Truncate extremely long texts to prevent token overflow
         if (rawText.length > 50000) {

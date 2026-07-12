@@ -14,10 +14,10 @@ vi.mock('@/lib/openai', () => ({
   SYSTEM_PROMPTS: { analyzeResume: 'ANALYZE_PROMPT' },
 }));
 
-vi.mock('pdf-parse', () => ({
-  default: vi.fn().mockResolvedValue({
-    text: 'John Doe\nSoftware Engineer\n5 years experience in React and Node.js at Samsung Vietnam',
-  }),
+vi.mock('@/lib/parsePdf', () => ({
+  extractPdfText: vi.fn().mockResolvedValue(
+    'John Doe\nSoftware Engineer\n5 years experience in React and Node.js at Samsung Vietnam'
+  ),
 }));
 
 vi.mock('mammoth', () => ({
@@ -77,10 +77,10 @@ describe('POST /api/ai/score-public', () => {
       callOpenAI: (...args) => mockCallOpenAI(...args),
       SYSTEM_PROMPTS: { analyzeResume: 'ANALYZE_PROMPT' },
     }));
-    vi.doMock('pdf-parse', () => ({
-      default: vi.fn().mockResolvedValue({
-        text: 'John Doe\nSoftware Engineer\n5 years experience in React and Node.js at Samsung Vietnam',
-      }),
+    vi.doMock('@/lib/parsePdf', () => ({
+      extractPdfText: vi.fn().mockResolvedValue(
+        'John Doe\nSoftware Engineer\n5 years experience in React and Node.js at Samsung Vietnam'
+      ),
     }));
     vi.doMock('mammoth', () => ({
       default: {

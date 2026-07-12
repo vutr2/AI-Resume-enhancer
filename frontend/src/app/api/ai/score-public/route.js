@@ -63,9 +63,8 @@ export async function POST(request) {
 
     if (file.type === 'application/pdf') {
       try {
-        const pdfParse = (await import('pdf-parse')).default;
-        const pdfData = await pdfParse(buffer);
-        rawText = pdfData.text;
+        const { extractPdfText } = await import('@/lib/parsePdf');
+        rawText = await extractPdfText(buffer);
       } catch {
         return NextResponse.json(
           { success: false, message: 'Không thể đọc file PDF. File có thể là ảnh scan.' },

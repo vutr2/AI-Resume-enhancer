@@ -185,7 +185,7 @@ Trả về JSON (nhận xét bằng tiếng Việt, từ khóa kỹ thuật/chuy
 
 // Helper function to call Claude API
 export async function callOpenAI(systemPrompt, userContent, options = {}) {
-  const { model = 'claude-sonnet-4-20250514', temperature = 0.7, maxTokens = 4000 } = options;
+  const { model = 'claude-sonnet-4-5', temperature = 0.7, maxTokens = 4000 } = options;
 
   try {
     const response = await anthropic.messages.create({

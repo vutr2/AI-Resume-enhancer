@@ -11,11 +11,14 @@ const descopeAuth = authMiddleware({
     '/forgot-password',
     '/reset-password',
     '/pricing',
+    '/help',
+    '/affiliate/register',
     '/api/auth/descope-sync',
     '/api/auth/complete-profile',
     '/api/payments/sepay/create',
     '/api/payments/sepay/callback',
     '/api/payments/sepay/ipn',
+    '/api/ai/score-public',
   ],
 
   // Redirect unauthenticated users to login

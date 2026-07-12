@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.72.1",
-    "@descope/nextjs-sdk": "^0.15.9",
+    "@descope/nextjs-sdk": "^0.15.54",
     "@fontsource/roboto": "^5.2.9",
     "@google/generative-ai": "^0.24.1",
     "@pdfme/generator": "^5.5.8",
@@ -27,7 +27,7 @@
     "mongoose": "^8.9.0",
     "next": "16.1.6",
     "openai": "^4.77.0",
-    "pdf-parse": "^1.1.1",
+    "pdfjs-dist": "^6.1.200",
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "react-dropzone": "^14.3.0",
