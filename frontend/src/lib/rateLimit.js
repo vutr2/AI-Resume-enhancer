@@ -1,8 +1,9 @@
 export const RATE_LIMITS = {
-  ai:      { windowMs: 60_000, maxRequests: 5  },
-  upload:  { windowMs: 60_000, maxRequests: 10 },
-  auth:    { windowMs: 60_000, maxRequests: 10 },
-  general: { windowMs: 60_000, maxRequests: 60 },
+  ai:      { windowMs:    60_000, maxRequests:  5 },
+  upload:  { windowMs:    60_000, maxRequests: 10 },
+  auth:    { windowMs:    60_000, maxRequests: 10 },
+  general: { windowMs:    60_000, maxRequests: 60 },
+  public:  { windowMs: 3_600_000, maxRequests:  2 }, // 2 per IP per hour
 };
 
 const store = new Map();
@@ -10,7 +11,9 @@ const store = new Map();
 setInterval(() => {
   const now = Date.now();
   for (const [key, data] of store.entries()) {
-    if (now - data.windowStart > 60_000) store.delete(key);
+    const type = key.split(':')[0];
+    const window = RATE_LIMITS[type]?.windowMs ?? 60_000;
+    if (now - data.windowStart > window) store.delete(key);
   }
 }, 300_000);
 

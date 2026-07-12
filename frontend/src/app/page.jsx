@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import ResumeScoreWidget from '@/components/landing/ResumeScoreWidget';
 import {
   ArrowRight,
   FileText,
@@ -146,6 +147,21 @@ export default function HomePage() {
               </span>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Public Resume Score Widget */}
+      <section className="py-16 px-4 bg-[var(--background-secondary)]">
+        <div className="container mx-auto max-w-3xl">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl md:text-3xl font-bold text-[var(--foreground)] mb-3">
+              Kiểm tra điểm ATS CV của bạn — miễn phí
+            </h2>
+            <p className="text-[var(--foreground-secondary)]">
+              Upload CV và xem ngay điểm ATS + mức độ sẵn sàng cho FDI. Không cần đăng ký.
+            </p>
+          </div>
+          <ResumeScoreWidget />
         </div>
       </section>
 
