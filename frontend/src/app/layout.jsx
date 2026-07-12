@@ -1,13 +1,15 @@
-import { Inter } from 'next/font/google';
+import { Be_Vietnam_Pro } from 'next/font/google';
 import Script from 'next/script';
 import { Toaster } from 'react-hot-toast';
 import AuthProvider from '@/components/providers/AuthProvider';
 import MetaPixelTracker from '@/components/MetaPixelTracker';
 import './globals.css';
 
-const inter = Inter({
+const beVietnamPro = Be_Vietnam_Pro({
   subsets: ['latin', 'vietnamese'],
-  variable: '--font-inter',
+  weight: ['300', '400', '500', '600', '700'],
+  variable: '--font-sans',
+  display: 'swap',
 });
 
 export const metadata = {
@@ -37,7 +39,7 @@ const PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID;
 export default function RootLayout({ children }) {
   return (
     <html lang="vi">
-      <body className={`${inter.variable} antialiased`}>
+      <body className={`${beVietnamPro.variable} antialiased`}>
         <AuthProvider>
           {children}
           <MetaPixelTracker />
