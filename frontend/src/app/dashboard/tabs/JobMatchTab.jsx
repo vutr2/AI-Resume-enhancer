@@ -82,7 +82,7 @@ export default function JobMatchTab({ resume }) {
                 {currentJobMatch.matchedSkills?.map((skill, index) => (
                   <span
                     key={index}
-                    className="px-3 py-1 bg-[var(--success)] bg-opacity-10 text-[var(--success)] rounded-full text-sm"
+                    className="px-3 py-1 bg-[var(--success)] text-white rounded-full text-sm font-medium"
                   >
                     {skill}
                   </span>
@@ -108,7 +108,7 @@ export default function JobMatchTab({ resume }) {
                 {currentJobMatch.missingSkills?.map((skill, index) => (
                   <span
                     key={index}
-                    className="px-3 py-1 bg-[var(--warning)] bg-opacity-10 text-[var(--warning)] rounded-full text-sm"
+                    className="px-3 py-1 bg-[var(--warning)] text-white rounded-full text-sm font-medium"
                   >
                     {skill}
                   </span>
