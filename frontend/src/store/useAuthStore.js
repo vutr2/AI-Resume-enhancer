@@ -120,7 +120,7 @@ export const useAuthStore = create(
       },
       getMaxCredits: () => {
         const user = get().user;
-        if (!user) return 5; // free plan default
+        if (!user) return 5;
         if (user.isUnlimited || user.maxCredits === -1) return -1;
         return user.maxCredits ?? 5;
       },
@@ -128,6 +128,49 @@ export const useAuthStore = create(
         const user = get().user;
         if (!user?.features) return false;
         return user.features[featureName] === true;
+      },
+
+      // New credit model helpers
+      getFreeCredits: () => get().user?.freeCredits ?? 0,
+      getPaidCredits: () => get().user?.paidCredits ?? 0,
+      getPassExpiresAt: () => get().user?.passExpiresAt ?? null,
+      hasActivePass: () => {
+        const exp = get().user?.passExpiresAt;
+        return !!exp && new Date(exp).getTime() > Date.now();
+      },
+      isCvUnlocked: (cvId) => {
+        const ids = get().user?.unlockedCvIds;
+        return Array.isArray(ids) && ids.includes(String(cvId));
+      },
+      hasFullAccess: (cvId) => {
+        const user = get().user;
+        if (!user) return false;
+        // Active pass
+        if (user.passExpiresAt && new Date(user.passExpiresAt).getTime() > Date.now()) return true;
+        // Legacy pro subscription
+        if (
+          user.plan === 'pro' &&
+          user.planExpiresAt &&
+          new Date(user.planExpiresAt).getTime() > Date.now()
+        ) return true;
+        // CV-specific unlock
+        if (cvId && Array.isArray(user.unlockedCvIds) && user.unlockedCvIds.includes(String(cvId))) {
+          return true;
+        }
+        return false;
+      },
+      updateCreditState: ({ freeCredits, paidCredits, unlockedCvIds, passExpiresAt } = {}) => {
+        const user = get().user;
+        if (!user) return;
+        set({
+          user: {
+            ...user,
+            ...(freeCredits !== undefined && { freeCredits }),
+            ...(paidCredits !== undefined && { paidCredits }),
+            ...(unlockedCvIds !== undefined && { unlockedCvIds }),
+            ...(passExpiresAt !== undefined && { passExpiresAt }),
+          },
+        });
       },
 
       clearError: () => set({ error: null }),

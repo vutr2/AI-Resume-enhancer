@@ -7,18 +7,18 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const mockCallOpenAI = vi.fn();
-const mockGetDb      = vi.fn();
+const mockGetUserAccess = vi.fn();
 
 vi.mock('@/lib/auth', () => ({ getCurrentUser: vi.fn() }));
-vi.mock('@/lib/db', () => ({ default: vi.fn(), getDb: (...a) => mockGetDb(...a) }));
+vi.mock('@/lib/db', () => ({ default: vi.fn() }));
 vi.mock('@/lib/rateLimit', () => ({
   rateLimitMiddleware: vi.fn().mockResolvedValue({ limited: false, headers: {} }),
 }));
-vi.mock('@/lib/plans', () => ({ hasFeature: vi.fn().mockReturnValue(true) }));
+vi.mock('@/lib/access', () => ({ getUserAccess: (...a) => mockGetUserAccess(...a) }));
 vi.mock('@/lib/openai', () => ({
   callOpenAI: (...a) => mockCallOpenAI(...a),
   SYSTEM_PROMPTS: {
-    rewriteContent:   'STANDARD_PROMPT',
+    rewriteContent:    'STANDARD_PROMPT',
     rewriteFDIEnglish: 'FDI_PROMPT',
   },
 }));
@@ -27,7 +27,6 @@ import { getCurrentUser } from '@/lib/auth';
 import { POST } from '@/app/api/ai/rewrite/route';
 
 const FAKE_USER = { descopeId: 'U1', email: 'u@test.com' };
-const FAKE_DB_USER = { _id: 'db1', descopeId: 'U1', plan: 'pro' };
 
 function makeReq(body) {
   return { json: async () => body };
@@ -36,7 +35,7 @@ function makeReq(body) {
 beforeEach(() => {
   vi.clearAllMocks();
   getCurrentUser.mockResolvedValue(FAKE_USER);
-  mockGetDb.mockResolvedValue({ collection: () => ({ findOne: vi.fn().mockResolvedValue(FAKE_DB_USER) }) });
+  mockGetUserAccess.mockResolvedValue({ level: 'full', reason: 'pass', paidCredits: 0, freeCredits: 0 });
   mockCallOpenAI.mockResolvedValue({
     rewrittenContent: 'CV content here',
     changes: [],

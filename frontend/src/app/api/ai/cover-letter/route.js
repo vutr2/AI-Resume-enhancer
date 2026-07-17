@@ -1,12 +1,11 @@
 import { NextResponse } from 'next/server';
-import dbConnect, { getDb } from '@/lib/db';
+import dbConnect from '@/lib/db';
 import Resume from '@/models/Resume';
 import CoverLetter from '@/models/CoverLetter';
 import { getCurrentUser } from '@/lib/auth';
 import { callOpenAI, SYSTEM_PROMPTS } from '@/lib/openai';
-import { checkCredits, consumeCredit } from '@/lib/credits';
 import { rateLimitMiddleware } from '@/lib/rateLimit';
-import { hasFeature } from '@/lib/plans';
+import { getUserAccess } from '@/lib/access';
 
 export async function POST(request) {
   try {
@@ -27,46 +26,28 @@ export async function POST(request) {
       });
     }
 
-    // Feature gate: coverLetter requires Pro plan
-    const db = await getDb();
-    const featureUser = await db.collection('users').findOne({
-      $or: [
-        { descopeId: decoded.descopeId },
-        { email: decoded.email?.toLowerCase() }
-      ]
-    });
-
-    if (!featureUser || !hasFeature(featureUser, 'coverLetter')) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: 'Tính năng tạo thư ứng tuyển yêu cầu gói Pro. Vui lòng nâng cấp.',
-          code: 'FEATURE_LOCKED',
-        },
-        { status: 403 }
-      );
-    }
-
-    // Kiểm tra credits trước khi xử lý
-    const creditCheck = await checkCredits();
-    if (!creditCheck.success) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: creditCheck.error,
-          code: creditCheck.code,
-          data: {
-            creditsRemaining: creditCheck.creditsRemaining,
-          },
-        },
-        { status: creditCheck.status }
-      );
-    }
-
     await dbConnect();
 
     const body = await request.json();
     const { resumeId, jobTitle, companyName, jobDescription, tone, language } = body;
+
+    // Full access required: pass, legacy pro, or CV unlocked
+    const access = await getUserAccess(decoded.descopeId, resumeId || null);
+    if (access.level !== 'full') {
+      return NextResponse.json(
+        {
+          success: false,
+          message: 'Tính năng tạo thư ứng tuyển yêu cầu mở khoá CV. Vui lòng mua lượt hoặc Pass 7 ngày.',
+          code: 'UPGRADE_REQUIRED',
+          data: {
+            freeCredits: access.freeCredits ?? 0,
+            paidCredits: access.paidCredits ?? 0,
+            canUnlock: access.canUnlock ?? false,
+          },
+        },
+        { status: 403 }
+      );
+    }
 
     if (!jobTitle || !companyName) {
       return NextResponse.json(
@@ -126,9 +107,6 @@ ${resumeContent}
         ],
       });
 
-      // Trừ credit sau khi tạo thành công
-      const creditResult = await consumeCredit(creditCheck.user._id);
-
       return NextResponse.json(
         {
           success: true,
@@ -142,7 +120,6 @@ ${resumeContent}
               companyName: coverLetter.companyName,
             },
             keyPoints: result.keyPoints,
-            creditsRemaining: creditResult.creditsRemaining,
           },
         },
         { status: 201 }

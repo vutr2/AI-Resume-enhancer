@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
-import dbConnect, { getDb } from '@/lib/db';
+import dbConnect from '@/lib/db';
 import { getCurrentUser } from '@/lib/auth';
 import { callOpenAI, SYSTEM_PROMPTS } from '@/lib/openai';
 import { rateLimitMiddleware } from '@/lib/rateLimit';
-import { hasFeature } from '@/lib/plans';
+import { getUserAccess } from '@/lib/access';
 
 export async function POST(request) {
   try {
@@ -26,27 +26,25 @@ export async function POST(request) {
 
     await dbConnect();
 
-    // Feature gate: rewriteCV requires Basic or Pro plan
-    const db = await getDb();
-    const featureUser = await db.collection('users').findOne({
-      $or: [
-        { descopeId: decoded.descopeId },
-        { email: decoded.email?.toLowerCase() }
-      ]
-    });
+    const body = await request.json();
 
-    if (!featureUser || !hasFeature(featureUser, 'rewriteCV')) {
+    // Full access required: pass, legacy pro, or CV unlocked
+    const access = await getUserAccess(decoded.descopeId, body.resumeId || null);
+    if (access.level !== 'full') {
       return NextResponse.json(
         {
           success: false,
-          message: 'Tính năng viết lại CV yêu cầu gói Basic trở lên. Vui lòng nâng cấp.',
-          code: 'FEATURE_LOCKED',
+          message: 'Tính năng viết lại CV yêu cầu mở khoá CV. Vui lòng mua lượt hoặc Pass 7 ngày.',
+          code: 'UPGRADE_REQUIRED',
+          data: {
+            freeCredits: access.freeCredits ?? 0,
+            paidCredits: access.paidCredits ?? 0,
+            canUnlock: access.canUnlock ?? false,
+          },
         },
         { status: 403 }
       );
     }
-
-    const body = await request.json();
     const { content, contentType, targetJob, mode } = body;
 
     if (!content) {

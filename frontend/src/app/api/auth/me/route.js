@@ -34,6 +34,12 @@ export async function GET() {
     const plan = getUserPlan(user);
     const creditsRemaining = calculateCreditsRemaining(user);
 
+    // Derive freeCredits for legacy users who lack the explicit field
+    const freeCredits =
+      user.freeCredits != null
+        ? user.freeCredits
+        : Math.max(0, 5 - (user.monthlyCreditsUsed || 0));
+
     return NextResponse.json(
       {
         success: true,
@@ -61,6 +67,11 @@ export async function GET() {
             features: plan.features,
             onboardingCompleted: user.onboardingCompleted,
             createdAt: user.createdAt,
+            // New credit model fields
+            freeCredits,
+            paidCredits: user.paidCredits || 0,
+            unlockedCvIds: user.unlockedCvIds || [],
+            passExpiresAt: user.passExpiresAt || null,
           },
         },
       },
@@ -123,6 +134,10 @@ export async function PUT(request) {
 
     const updatedPlan = getUserPlan(user);
     const updatedCreditsRemaining = calculateCreditsRemaining(user);
+    const updatedFreeCredits =
+      user.freeCredits != null
+        ? user.freeCredits
+        : Math.max(0, 5 - (user.monthlyCreditsUsed || 0));
 
     return NextResponse.json(
       {
@@ -152,6 +167,10 @@ export async function PUT(request) {
             features: updatedPlan.features,
             onboardingCompleted: user.onboardingCompleted,
             createdAt: user.createdAt,
+            freeCredits: updatedFreeCredits,
+            paidCredits: user.paidCredits || 0,
+            unlockedCvIds: user.unlockedCvIds || [],
+            passExpiresAt: user.passExpiresAt || null,
           },
         },
       },

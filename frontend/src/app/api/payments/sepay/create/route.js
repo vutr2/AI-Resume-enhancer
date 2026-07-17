@@ -5,10 +5,7 @@ import Payment from '@/models/Payment';
 import User from '@/models/User';
 import { getCurrentUser } from '@/lib/auth';
 import { rateLimitMiddleware } from '@/lib/rateLimit';
-
-const PLAN_PRICES = {
-  pro: { monthly: 99000, yearly: 990000 },
-};
+import { PACKAGES } from '@/lib/packages';
 
 function generateOrderId() {
   const ts = Date.now();
@@ -28,20 +25,18 @@ export async function POST(request) {
 
     const rateLimitResult = await rateLimitMiddleware(request, decoded.descopeId, 'general');
     if (rateLimitResult.limited) {
-      return NextResponse.json(rateLimitResult.response, { status: rateLimitResult.status, headers: rateLimitResult.headers });
+      return NextResponse.json(rateLimitResult.response, {
+        status: rateLimitResult.status,
+        headers: rateLimitResult.headers,
+      });
     }
 
-    const { planId, billingCycle } = await request.json();
+    const body = await request.json();
+    const { packageId } = body;
 
-    if (!planId || !PLAN_PRICES[planId]) {
+    if (!packageId || !PACKAGES[packageId]) {
       return NextResponse.json(
         { success: false, message: 'Gói dịch vụ không hợp lệ' },
-        { status: 400 }
-      );
-    }
-    if (!billingCycle || !['monthly', 'yearly'].includes(billingCycle)) {
-      return NextResponse.json(
-        { success: false, message: 'Chu kỳ thanh toán không hợp lệ' },
         { status: 400 }
       );
     }
@@ -61,7 +56,8 @@ export async function POST(request) {
       );
     }
 
-    const amount = PLAN_PRICES[planId][billingCycle];
+    const pkg = PACKAGES[packageId];
+    const amount = pkg.price;
     const orderId = generateOrderId();
     const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3002';
 
@@ -79,21 +75,19 @@ export async function POST(request) {
       order_invoice_number: orderId,
       order_amount: amount,
       currency: 'VND',
-      order_description: `ResuMax VN - Goi ${planId} ${billingCycle === 'yearly' ? '12 thang' : '1 thang'}`,
+      order_description: `ResuMax VN - ${pkg.label}`,
       customer_id: decoded.descopeId,
       success_url: `${APP_URL}/api/payments/sepay/callback?status=success&orderId=${orderId}`,
-      error_url:   `${APP_URL}/api/payments/sepay/callback?status=failed&orderId=${orderId}`,
-      cancel_url:  `${APP_URL}/api/payments/sepay/callback?status=cancelled&orderId=${orderId}`,
+      error_url: `${APP_URL}/api/payments/sepay/callback?status=failed&orderId=${orderId}`,
+      cancel_url: `${APP_URL}/api/payments/sepay/callback?status=cancelled&orderId=${orderId}`,
     });
 
-    // Save pending payment
     await Payment.create({
       user: dbUser._id,
       orderId,
-      plan: planId,
+      package: packageId,
       amount,
       paymentMethod: 'sepay',
-      billingPeriod: billingCycle,
       status: 'pending',
       paymentDetails: { descopeId: decoded.descopeId },
     });

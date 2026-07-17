@@ -15,8 +15,13 @@ const paymentSchema = new mongoose.Schema(
     },
     plan: {
       type: String,
-      enum: ['basic', 'pro', 'enterprise'],
-      required: true,
+      enum: ['basic', 'pro', 'enterprise', null],
+      default: null,
+    },
+    package: {
+      type: String,
+      enum: ['credit_1', 'credit_3', 'week_pass', null],
+      default: null,
     },
     amount: {
       type: Number,

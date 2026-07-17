@@ -46,6 +46,23 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
+    // Credit model (new)
+    freeCredits: {
+      type: Number,
+      default: 5,
+    },
+    paidCredits: {
+      type: Number,
+      default: 0,
+    },
+    unlockedCvIds: {
+      type: [String],
+      default: [],
+    },
+    passExpiresAt: {
+      type: Date,
+      default: null,
+    },
     isEmailVerified: {
       type: Boolean,
       default: false,

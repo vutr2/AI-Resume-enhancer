@@ -3,7 +3,7 @@ import dbConnect from '@/lib/db';
 import Resume from '@/models/Resume';
 import { getCurrentUser } from '@/lib/auth';
 import { callOpenAI } from '@/lib/openai';
-import { checkCredits, consumeCredit } from '@/lib/credits';
+import { getUserAccess, consumeFreeCredit } from '@/lib/access';
 import { rateLimitMiddleware } from '@/lib/rateLimit';
 import { cachedAICall } from '@/lib/cache';
 
@@ -121,23 +121,6 @@ export async function POST(request) {
       });
     }
 
-    // Kiểm tra credits trước khi xử lý
-    const creditCheck = await checkCredits();
-    if (!creditCheck.success) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: creditCheck.error,
-          code: creditCheck.code,
-          data: {
-            creditsRemaining: creditCheck.creditsRemaining,
-            plan: creditCheck.plan,
-          },
-        },
-        { status: creditCheck.status }
-      );
-    }
-
     await dbConnect();
 
     const body = await request.json();
@@ -145,6 +128,20 @@ export async function POST(request) {
     const jobDescription = typeof body.jobDescription === 'string'
       ? body.jobDescription.slice(0, 10000)
       : body.jobDescription;
+
+    // Access control — check after parsing body so we have resumeId for per-CV unlock check
+    const access = await getUserAccess(decoded.descopeId, resumeId || null);
+    if (access.level === 'locked') {
+      return NextResponse.json(
+        {
+          success: false,
+          message: 'Bạn đã dùng hết lượt miễn phí. Mua thêm lượt để tiếp tục.',
+          code: 'NO_CREDITS',
+          data: { freeCredits: 0, paidCredits: 0 },
+        },
+        { status: 403 }
+      );
+    }
 
     if (!resumeId) {
       return NextResponse.json(
@@ -263,8 +260,16 @@ export async function POST(request) {
 
       console.log('CV processed successfully with scores:', normalizedScores);
 
-      // Trừ credit sau khi xử lý thành công
-      const creditResult = await consumeCredit(creditCheck.user._id);
+      // Consume 1 free credit after a successful limited-access analysis
+      let freeCreditsRemaining = access.freeCredits ?? 0;
+      if (access.reason === 'free_credits') {
+        const consumed = await consumeFreeCredit(decoded.descopeId);
+        if (consumed.success) {
+          freeCreditsRemaining = consumed.freeCredits ?? Math.max(0, freeCreditsRemaining - 1);
+        }
+      }
+
+      const isLimited = access.level === 'limited';
 
       return NextResponse.json(
         {
@@ -274,7 +279,10 @@ export async function POST(request) {
             parsedData,
             scores: normalizedScores,
             analysis: normalizedAnalysis,
-            creditsRemaining: creditResult.creditsRemaining,
+            isLimited,
+            freeCredits: freeCreditsRemaining,
+            paidCredits: access.paidCredits ?? 0,
+            canUnlock: access.canUnlock ?? false,
           },
         },
         { status: 200 }

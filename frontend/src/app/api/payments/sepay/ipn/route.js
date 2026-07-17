@@ -5,12 +5,12 @@ import User from '@/models/User';
 import Referral from '@/models/Referral';
 import Commission from '@/models/Commission';
 import { COMMISSION_RATE } from '@/lib/affiliate';
+import { PACKAGES } from '@/lib/packages';
 
 // SePay IPN - server-to-server notification
 // SePay sends POST with X-Secret-Key header for authentication
 export async function POST(request) {
   try {
-    // Verify secret key if configured in SePay merchant dashboard
     const secretKey = request.headers.get('x-secret-key');
     const configuredKey = process.env.SEPAY_IPN_SECRET;
     if (configuredKey && secretKey !== configuredKey) {
@@ -21,7 +21,6 @@ export async function POST(request) {
     const { notification_type, order } = body;
 
     if (notification_type !== 'ORDER_PAID') {
-      // Not a payment notification, acknowledge and ignore
       return NextResponse.json({ success: true });
     }
 
@@ -39,7 +38,6 @@ export async function POST(request) {
     }
 
     if (payment.status === 'completed') {
-      // Already processed (e.g. by redirect callback), acknowledge
       return NextResponse.json({ success: true });
     }
 
@@ -53,28 +51,53 @@ export async function POST(request) {
     await payment.save();
 
     const now = new Date();
-    const expiresAt = new Date(now);
-    if (payment.billingPeriod === 'yearly') {
-      expiresAt.setFullYear(expiresAt.getFullYear() + 1);
-    } else {
-      expiresAt.setMonth(expiresAt.getMonth() + 1);
-    }
+    let dbUser;
 
-    const dbUser = await User.findByIdAndUpdate(
-      payment.user,
-      { plan: payment.plan, planExpiresAt: expiresAt, updatedAt: now },
-      { new: true }
-    );
+    if (payment.package && PACKAGES[payment.package]) {
+      // New credit model: grant credits or pass
+      const pkg = PACKAGES[payment.package];
+      const $set = { updatedAt: now };
+      const $inc = {};
+
+      if (pkg.credits > 0) {
+        $inc.paidCredits = pkg.credits;
+      }
+      if (pkg.passDays > 0) {
+        const passEnd = new Date(now);
+        passEnd.setDate(passEnd.getDate() + pkg.passDays);
+        $set.passExpiresAt = passEnd;
+      }
+
+      const updateOp = Object.keys($inc).length > 0 ? { $set, $inc } : { $set };
+      dbUser = await User.findByIdAndUpdate(payment.user, updateOp, { new: true });
+    } else if (payment.plan) {
+      // Legacy subscription model
+      const expiresAt = new Date(now);
+      if (payment.billingPeriod === 'yearly') {
+        expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+      } else {
+        expiresAt.setMonth(expiresAt.getMonth() + 1);
+      }
+      dbUser = await User.findByIdAndUpdate(
+        payment.user,
+        { plan: payment.plan, planExpiresAt: expiresAt, updatedAt: now },
+        { new: true }
+      );
+    }
 
     // Affiliate commission — best-effort, never blocks IPN response
     if (dbUser?.descopeId) {
       try {
+        // 90-day rule: commission on ALL purchases within 90 days of signup
+        const ninetyDaysAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
         const referral = await Referral.findOne({
           referredUserId: dbUser.descopeId,
-          status: 'signed_up',
+          signedUpAt: { $gte: ninetyDaysAgo },
         });
+
         if (referral) {
-          const alreadyCommissioned = await Commission.findOne({ referralId: referral._id });
+          // Per-order idempotency: don't commission the same order twice
+          const alreadyCommissioned = await Commission.findOne({ orderId: payment.orderId });
           if (!alreadyCommissioned) {
             const gross = Math.round(payment.amount);
             await Commission.create({
@@ -83,12 +106,15 @@ export async function POST(request) {
               orderId: payment.orderId,
               grossAmount: gross,
               commissionAmount: Math.round(gross * COMMISSION_RATE),
-              isFirstPayment: true,
+              isFirstPayment: referral.status === 'signed_up',
             });
-            await Referral.updateOne(
-              { _id: referral._id },
-              { status: 'converted', convertedAt: new Date() }
-            );
+            // Mark referral converted on first purchase; subsequent purchases keep 'converted'
+            if (referral.status === 'signed_up') {
+              await Referral.updateOne(
+                { _id: referral._id },
+                { status: 'converted', convertedAt: now }
+              );
+            }
           }
         }
       } catch (affErr) {

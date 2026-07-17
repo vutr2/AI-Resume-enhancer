@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
-import dbConnect, { getDb } from '@/lib/db';
+import dbConnect from '@/lib/db';
 import Resume from '@/models/Resume';
 import { getCurrentUser } from '@/lib/auth';
 import { callOpenAI, SYSTEM_PROMPTS } from '@/lib/openai';
 import { rateLimitMiddleware } from '@/lib/rateLimit';
-import { hasFeature } from '@/lib/plans';
+import { getUserAccess } from '@/lib/access';
 
 const MAX_JOB_DESC_LENGTH = 10000;
 
@@ -28,31 +28,29 @@ export async function POST(request) {
 
     await dbConnect();
 
-    // Feature gate: matchJob requires Pro plan
-    const db = await getDb();
-    const featureUser = await db.collection('users').findOne({
-      $or: [
-        { descopeId: decoded.descopeId },
-        { email: decoded.email?.toLowerCase() }
-      ]
-    });
-
-    if (!featureUser || !hasFeature(featureUser, 'matchJob')) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: 'Tính năng so khớp JD yêu cầu gói Pro. Vui lòng nâng cấp.',
-          code: 'FEATURE_LOCKED',
-        },
-        { status: 403 }
-      );
-    }
-
     const body = await request.json();
     const { resumeId, jobTitle, companyName } = body;
     const jobDescription = typeof body.jobDescription === 'string'
       ? body.jobDescription.slice(0, MAX_JOB_DESC_LENGTH)
       : body.jobDescription;
+
+    // Full access required: pass, legacy pro, or CV unlocked
+    const access = await getUserAccess(decoded.descopeId, resumeId || null);
+    if (access.level !== 'full') {
+      return NextResponse.json(
+        {
+          success: false,
+          message: 'Tính năng so khớp JD yêu cầu mở khoá CV. Vui lòng mua lượt hoặc Pass 7 ngày.',
+          code: 'UPGRADE_REQUIRED',
+          data: {
+            freeCredits: access.freeCredits ?? 0,
+            paidCredits: access.paidCredits ?? 0,
+            canUnlock: access.canUnlock ?? false,
+          },
+        },
+        { status: 403 }
+      );
+    }
 
     if (!resumeId || !jobDescription) {
       return NextResponse.json(

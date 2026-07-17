@@ -209,11 +209,19 @@ class ApiClient {
   // Payment endpoints
   // ==========================================
 
-  // SePay
-  async createSePayOrder(planId, billingCycle) {
+  // SePay — new package-based flow
+  async createSePayOrder(packageId) {
     return this.request('/payments/sepay/create', {
       method: 'POST',
-      body: JSON.stringify({ planId, billingCycle }),
+      body: JSON.stringify({ packageId }),
+    });
+  }
+
+  // Unlock a specific CV by spending 1 paidCredit
+  async unlockCv(cvId) {
+    return this.request('/credits/unlock', {
+      method: 'POST',
+      body: JSON.stringify({ cvId }),
     });
   }
 
