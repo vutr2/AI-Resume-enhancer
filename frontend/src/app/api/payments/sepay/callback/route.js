@@ -30,9 +30,9 @@ export async function GET(request) {
         await payment.save();
 
         const now = new Date();
+        let updatedUser;
 
         if (payment.package && PACKAGES[payment.package]) {
-          // New credit model: grant credits or pass
           const pkg = PACKAGES[payment.package];
           const $set = { updatedAt: now };
           const $inc = {};
@@ -47,21 +47,30 @@ export async function GET(request) {
           }
 
           const updateOp = Object.keys($inc).length > 0 ? { $set, $inc } : { $set };
-          await User.findByIdAndUpdate(payment.user, updateOp);
+          updatedUser = await User.findByIdAndUpdate(payment.user, updateOp, { new: true });
         } else if (payment.plan) {
-          // Legacy subscription model
           const expiresAt = new Date(now);
           if (payment.billingPeriod === 'yearly') {
             expiresAt.setFullYear(expiresAt.getFullYear() + 1);
           } else {
             expiresAt.setMonth(expiresAt.getMonth() + 1);
           }
-          await User.findByIdAndUpdate(payment.user, {
-            plan: payment.plan,
-            planExpiresAt: expiresAt,
-            updatedAt: now,
-          });
+          updatedUser = await User.findByIdAndUpdate(
+            payment.user,
+            { plan: payment.plan, planExpiresAt: expiresAt, updatedAt: now },
+            { new: true }
+          );
         }
+
+        if (!updatedUser) {
+          console.error(`[Callback] User not found for orderId=${orderId}, userId=${payment.user}`);
+        } else {
+          console.log(`[Callback] Grant OK for user ${updatedUser.descopeId || updatedUser._id}, orderId=${orderId}`);
+        }
+      } else if (payment?.status === 'completed') {
+        console.log(`[Callback] Payment ${orderId} already completed (handled by IPN)`);
+      } else {
+        console.error(`[Callback] Payment not found for orderId=${orderId}`);
       }
 
       return NextResponse.redirect(

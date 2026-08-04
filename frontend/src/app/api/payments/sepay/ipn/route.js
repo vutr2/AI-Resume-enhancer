@@ -70,6 +70,12 @@ export async function POST(request) {
 
       const updateOp = Object.keys($inc).length > 0 ? { $set, $inc } : { $set };
       dbUser = await User.findByIdAndUpdate(payment.user, updateOp, { new: true });
+
+      if (!dbUser) {
+        console.error(`[IPN] CRITICAL: User not found for payment ${payment.orderId}, userId=${payment.user}`);
+      } else {
+        console.log(`[IPN] Granted ${pkg.label} to user ${dbUser.descopeId || dbUser._id}`);
+      }
     } else if (payment.plan) {
       // Legacy subscription model
       const expiresAt = new Date(now);
@@ -83,6 +89,14 @@ export async function POST(request) {
         { plan: payment.plan, planExpiresAt: expiresAt, updatedAt: now },
         { new: true }
       );
+
+      if (!dbUser) {
+        console.error(`[IPN] CRITICAL: User not found for payment ${payment.orderId}, userId=${payment.user}`);
+      } else {
+        console.log(`[IPN] Set plan=${payment.plan} for user ${dbUser.descopeId || dbUser._id}`);
+      }
+    } else {
+      console.error(`[IPN] Payment ${payment.orderId} has neither package nor plan — nothing to grant`);
     }
 
     // Affiliate commission — best-effort, never blocks IPN response
