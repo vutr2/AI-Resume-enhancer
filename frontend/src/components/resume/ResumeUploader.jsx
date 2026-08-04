@@ -20,12 +20,11 @@ export default function ResumeUploader({ onUpload, isLoading = false }) {
   const [error, setError] = useState('');
   const [showOutOfCreditsModal, setShowOutOfCreditsModal] = useState(false);
   const { uploadProgress } = useResumeStore();
-  const { user } = useAuthStore();
+  const { user, getFreeCredits, hasActivePass } = useAuthStore();
 
-  // Tính số credits còn lại
-  const creditsRemaining = user?.creditsRemaining ?? 0;
-  const maxCredits = user?.maxCredits ?? 5;
-  const isUnlimited = user?.isUnlimited || creditsRemaining === -1;
+  const freeCredits = getFreeCredits();
+  const activePass = hasActivePass();
+  const canAnalyze = activePass || freeCredits > 0;
 
   const onDrop = useCallback((acceptedFiles, rejectedFiles) => {
     setError('');
@@ -61,8 +60,7 @@ export default function ResumeUploader({ onUpload, isLoading = false }) {
   };
 
   const handleUpload = () => {
-    // Kiểm tra còn credits không (trừ khi unlimited)
-    if (!isUnlimited && creditsRemaining <= 0) {
+    if (!canAnalyze) {
       setShowOutOfCreditsModal(true);
       return;
     }
@@ -209,17 +207,17 @@ export default function ResumeUploader({ onUpload, isLoading = false }) {
       )}
 
       {/* Credits info */}
-      {user && !isUnlimited && (
+      {user && !activePass && (
         <div className="mt-4 flex items-center justify-between p-3 bg-[var(--background-secondary)] rounded-lg">
           <div className="flex items-center gap-2">
             <Zap className="w-4 h-4 text-amber-500" />
             <span className="text-sm text-[var(--foreground-secondary)]">
-              Lượt còn lại: <strong>{creditsRemaining}/{maxCredits}</strong>
+              Lượt phân tích ATS: <strong>{freeCredits}</strong>
             </span>
           </div>
-          {creditsRemaining <= 2 && (
+          {freeCredits <= 1 && (
             <span className="text-xs text-amber-500">
-              {creditsRemaining === 0 ? 'Hết lượt!' : 'Sắp hết lượt'}
+              {freeCredits === 0 ? 'Hết lượt!' : 'Sắp hết lượt'}
             </span>
           )}
         </div>
@@ -229,7 +227,7 @@ export default function ResumeUploader({ onUpload, isLoading = false }) {
       <OutOfCreditsModal
         isOpen={showOutOfCreditsModal}
         onClose={() => setShowOutOfCreditsModal(false)}
-        maxCredits={maxCredits}
+        maxCredits={5}
         plan={user?.plan}
       />
     </div>

@@ -65,16 +65,14 @@ const toolItems = [
     label: 'Viết lại CV',
     icon: PenTool,
     tab: 'rewrite',
-    requiredFeature: 'rewriteCV',
-    upgradeMsg: 'Vui lòng nâng cấp lên gói Basic để sử dụng tính năng Viết lại CV.',
+    requiresFullAccess: true,
   },
   {
     id: 'match',
     label: 'So khớp JD',
     icon: Target,
     tab: 'match',
-    requiredFeature: 'matchJob',
-    upgradeMsg: 'Vui lòng nâng cấp lên gói Pro để sử dụng tính năng So khớp JD.',
+    requiresFullAccess: true,
   },
   {
     id: 'ats',
@@ -87,8 +85,7 @@ const toolItems = [
     label: 'Thư ứng tuyển',
     icon: Mail,
     tab: 'cover',
-    requiredFeature: 'coverLetter',
-    upgradeMsg: 'Vui lòng nâng cấp lên gói Pro để sử dụng tính năng Thư ứng tuyển.',
+    requiresFullAccess: true,
   },
 ];
 
@@ -110,8 +107,10 @@ const bottomItems = [
 export default function Sidebar({ activeTab, onTabChange, collapsed, onToggleCollapse }) {
   const pathname = usePathname();
   const { currentResume } = useResumeStore();
-  const { user } = useAuthStore();
+  const { user, hasFullAccess, hasActivePass, getFreeCredits, getPaidCredits } = useAuthStore();
   const [upgradeModal, setUpgradeModal] = useState(false);
+
+  const cvId = currentResume?._id;
 
   const isTabDisabled = (tab) => {
     if (tab === 'upload') return false;
@@ -189,7 +188,7 @@ export default function Sidebar({ activeTab, onTabChange, collapsed, onToggleCol
                 const Icon = item.icon;
                 const isActive = activeTab === item.tab;
                 const isDisabled = isTabDisabled(item.tab);
-                const isLocked = item.requiredFeature && !user?.features?.[item.requiredFeature];
+                const isLocked = item.requiresFullAccess && !hasFullAccess(cvId);
 
                 const handleClick = () => {
                   if (isDisabled) return;
@@ -296,54 +295,31 @@ export default function Sidebar({ activeTab, onTabChange, collapsed, onToggleCol
         {/* Credits Display */}
         {!collapsed && user && (
           <div className="p-4 border-t border-[var(--border)]">
-            <div className="p-3 bg-[var(--background-secondary)] rounded-lg">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <Zap className="w-4 h-4 text-amber-500" />
-                  <span className="text-sm font-medium text-[var(--foreground)]">
-                    Lượt sử dụng
-                  </span>
-                </div>
-                {user.isUnlimited || user.creditsRemaining === -1 ? (
-                  <span className="text-xs font-semibold text-emerald-500">Không giới hạn</span>
-                ) : (
-                  <span className="text-xs font-semibold text-[var(--foreground)]">
-                    {user.creditsRemaining ?? 0}/{user.maxCredits ?? 5}
-                  </span>
-                )}
+            <div className="p-3 bg-[var(--background-secondary)] rounded-lg space-y-1.5">
+              <div className="flex items-center gap-2 mb-1">
+                <Zap className="w-4 h-4 text-amber-500" />
+                <span className="text-sm font-medium text-[var(--foreground)]">Tài khoản</span>
               </div>
-              {!user.isUnlimited && user.creditsRemaining !== -1 && (
+              {hasActivePass() ? (
+                <p className="text-xs text-emerald-500 font-semibold">Pass 7 ngày đang hoạt động</p>
+              ) : (
                 <>
-                  <div className="h-2 bg-[var(--border)] rounded-full overflow-hidden">
-                    <div
-                      className={clsx(
-                        'h-full rounded-full transition-all',
-                        (user.creditsRemaining ?? 0) > 3
-                          ? 'bg-emerald-500'
-                          : (user.creditsRemaining ?? 0) > 1
-                          ? 'bg-amber-500'
-                          : 'bg-red-500'
-                      )}
-                      style={{
-                        width: `${
-                          ((user.creditsRemaining ?? 0) /
-                            (user.maxCredits ?? 5)) *
-                          100
-                        }%`,
-                      }}
-                    />
+                  <div className="flex justify-between text-xs">
+                    <span className="text-[var(--foreground-muted)]">Lượt phân tích ATS</span>
+                    <span className="font-semibold text-[var(--foreground)]">{getFreeCredits()}</span>
                   </div>
-                  <p className="mt-2 text-xs text-[var(--foreground-muted)]">
-                    Gói {user.plan === 'basic' ? 'Basic' : user.plan === 'pro' ? 'Pro' : 'Miễn phí'}: {user.maxCredits ?? 5} lượt/tháng
-                  </p>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-[var(--foreground-muted)]">Lượt mở khoá CV</span>
+                    <span className="font-semibold text-[var(--foreground)]">{getPaidCredits()}</span>
+                  </div>
                 </>
               )}
             </div>
           </div>
         )}
 
-        {/* Upgrade Button */}
-        {user?.plan === 'free' && (
+        {/* Upgrade Button — shown when no active pass */}
+        {!hasActivePass() && (
           <div className={clsx('p-4 border-t border-[var(--border)]', collapsed && 'p-2')}>
             <Link
               href="/pricing"
@@ -351,13 +327,13 @@ export default function Sidebar({ activeTab, onTabChange, collapsed, onToggleCol
                 'flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-lg hover:from-amber-600 hover:to-orange-600 transition-all',
                 collapsed && 'justify-center px-2'
               )}
-              title={collapsed ? 'Nâng cấp Premium' : undefined}
+              title={collapsed ? 'Mua lượt / Pass' : undefined}
             >
               <Crown className="w-5 h-5 flex-shrink-0" />
               {!collapsed && (
                 <div>
-                  <p className="text-sm font-semibold">Nâng cấp Premium</p>
-                  <p className="text-xs opacity-90">Mở khóa tất cả tính năng</p>
+                  <p className="text-sm font-semibold">Mua lượt / Pass 7 ngày</p>
+                  <p className="text-xs opacity-90">Mở khóa tính năng AI</p>
                 </div>
               )}
             </Link>
@@ -366,7 +342,7 @@ export default function Sidebar({ activeTab, onTabChange, collapsed, onToggleCol
       </div>
     </aside>
 
-    <UpgradeModal isOpen={upgradeModal} onClose={() => setUpgradeModal(false)} />
+    <UpgradeModal isOpen={upgradeModal} onClose={() => setUpgradeModal(false)} cvId={cvId} />
     </>
   );
 }
