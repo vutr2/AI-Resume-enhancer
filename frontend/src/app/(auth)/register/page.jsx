@@ -99,7 +99,7 @@ export default function RegisterPage() {
             flowId="sign-up-or-in-passwords-or-social"
             onSuccess={handleSuccess}
             onError={handleError}
-            theme="dark"
+            theme="light"
           />
 
           <p className="mt-6 text-center text-sm text-[var(--foreground-secondary)]">
