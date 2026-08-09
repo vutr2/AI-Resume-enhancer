@@ -5,8 +5,10 @@ import { Target, AlertTriangle, CheckCircle, Lightbulb } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import { useResumeStore } from '@/store/useResumeStore';
+import LockedTabOverlay from '@/components/ui/LockedTabOverlay';
+import JobMatchPlaceholder from '@/components/placeholders/JobMatchPlaceholder';
 
-export default function JobMatchTab({ resume }) {
+function JobMatchTabContent({ resume }) {
   const [jobDescription, setJobDescription] = useState('');
   const { matchJob, currentJobMatch, isLoading } = useResumeStore();
 
@@ -159,5 +161,17 @@ export default function JobMatchTab({ resume }) {
         )}
       </div>
     </div>
+  );
+}
+
+export default function JobMatchTab({ resume }) {
+  return (
+    <LockedTabOverlay
+      cvId={resume?._id}
+      featureName="So khớp JD"
+      placeholder={<JobMatchPlaceholder />}
+    >
+      <JobMatchTabContent resume={resume} />
+    </LockedTabOverlay>
   );
 }

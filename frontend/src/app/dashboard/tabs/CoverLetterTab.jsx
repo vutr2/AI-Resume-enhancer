@@ -6,6 +6,8 @@ import { Mail, Copy, Check, Download } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import { useResumeStore } from '@/store/useResumeStore';
+import LockedTabOverlay from '@/components/ui/LockedTabOverlay';
+import CoverLetterPlaceholder from '@/components/placeholders/CoverLetterPlaceholder';
 
 const letterStyles = [
   {
@@ -25,7 +27,7 @@ const letterStyles = [
   },
 ];
 
-export default function CoverLetterTab({ resume }) {
+function CoverLetterTabContent({ resume }) {
   const [jobTitle, setJobTitle] = useState('');
   const [companyName, setCompanyName] = useState('');
   const [jobDescription, setJobDescription] = useState('');
@@ -264,5 +266,17 @@ export default function CoverLetterTab({ resume }) {
         </Card>
       </div>
     </div>
+  );
+}
+
+export default function CoverLetterTab({ resume }) {
+  return (
+    <LockedTabOverlay
+      cvId={resume?._id}
+      featureName="Thư ứng tuyển"
+      placeholder={<CoverLetterPlaceholder />}
+    >
+      <CoverLetterTabContent resume={resume} />
+    </LockedTabOverlay>
   );
 }

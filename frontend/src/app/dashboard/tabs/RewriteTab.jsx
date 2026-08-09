@@ -9,6 +9,8 @@ import { useResumeStore } from '@/store/useResumeStore';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 import toast from 'react-hot-toast';
+import LockedTabOverlay from '@/components/ui/LockedTabOverlay';
+import RewritePlaceholder from '@/components/placeholders/RewritePlaceholder';
 
 const styles = [
   {
@@ -56,7 +58,7 @@ const tones = [
   },
 ];
 
-export default function RewriteTab({ resume }) {
+function RewriteTabContent({ resume }) {
   const [selectedStyle, setSelectedStyle] = useState('senior');
   const [selectedTone, setSelectedTone] = useState('formal');
   const [rewrittenContent, setRewrittenContent] = useState(null);
@@ -404,5 +406,18 @@ export default function RewriteTab({ resume }) {
         </Card>
       </div>
     </div>
+  );
+}
+
+
+export default function RewriteTab({ resume }) {
+  return (
+    <LockedTabOverlay
+      cvId={resume?._id}
+      featureName="Viết lại CV"
+      placeholder={<RewritePlaceholder />}
+    >
+      <RewriteTabContent resume={resume} />
+    </LockedTabOverlay>
   );
 }

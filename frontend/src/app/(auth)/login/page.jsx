@@ -5,8 +5,9 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Descope } from '@descope/nextjs-sdk';
 import { useSession } from '@descope/nextjs-sdk/client';
-import { FileText } from 'lucide-react';
+
 import Card from '@/components/ui/Card';
+import DauViecLogo from '@/components/ui/DauViecLogo';
 import toast from 'react-hot-toast';
 
 export default function LoginPage() {
@@ -78,11 +79,9 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <Link href="/" className="flex items-center justify-center gap-2 mb-8">
-          <div className="w-10 h-10 rounded-xl bg-[var(--primary)] flex items-center justify-center">
-            <FileText className="w-6 h-6 text-white" />
-          </div>
+          <DauViecLogo size={40} />
           <span className="text-2xl font-bold text-[var(--foreground)]">
-            ResuMax VN
+            Đậu Việc
           </span>
         </Link>
 

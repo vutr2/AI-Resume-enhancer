@@ -8,7 +8,7 @@ import os from 'os';
  * For production with multiple instances, replace with Redis.
  */
 
-const CACHE_DIR = path.join(os.tmpdir(), 'resumax-ai-cache');
+const CACHE_DIR = path.join(os.tmpdir(), 'dauviec-ai-cache');
 
 let cacheReady = false;
 
@@ -220,7 +220,7 @@ class MemoryCache {
 }
 
 // Singleton - use global to survive HMR in dev
-const globalKey = '__resumax_ai_cache__';
+const globalKey = '__dauviec_ai_cache__';
 let aiCache;
 if (process.env.NODE_ENV === 'development') {
   if (!global[globalKey]) {

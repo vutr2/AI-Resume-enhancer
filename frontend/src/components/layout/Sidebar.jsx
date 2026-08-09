@@ -192,10 +192,7 @@ export default function Sidebar({ activeTab, onTabChange, collapsed, onToggleCol
 
                 const handleClick = () => {
                   if (isDisabled) return;
-                  if (isLocked) {
-                    setUpgradeModal(true);
-                    return;
-                  }
+                  // Allow navigation even when locked — the tab shows blur preview + CTA
                   onTabChange(item.tab);
                 };
 

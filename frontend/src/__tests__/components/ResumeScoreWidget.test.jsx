@@ -155,7 +155,7 @@ describe('ResumeScoreWidget — result state', () => {
     });
 
     await waitFor(() => {
-      const saved = JSON.parse(sessionStorage.getItem('resumax_public_score'));
+      const saved = JSON.parse(sessionStorage.getItem('dauviec_public_score'));
       expect(saved).not.toBeNull();
       expect(saved.scores.overall).toBe(72);
       expect(saved.fileName).toBe('my-cv.pdf');
@@ -184,7 +184,7 @@ describe('ResumeScoreWidget — sessionStorage restore', () => {
       topFixes: ['Fix 1', 'Fix 2'],
       fileName: 'cached-cv.pdf',
     };
-    sessionStorage.setItem('resumax_public_score', JSON.stringify(saved));
+    sessionStorage.setItem('dauviec_public_score', JSON.stringify(saved));
 
     render(<ResumeScoreWidget />);
 
@@ -246,6 +246,6 @@ describe('ResumeScoreWidget — reset', () => {
     });
 
     expect(screen.getByText(/Thả CV vào đây/i)).toBeInTheDocument();
-    expect(sessionStorage.getItem('resumax_public_score')).toBeNull();
+    expect(sessionStorage.getItem('dauviec_public_score')).toBeNull();
   });
 });

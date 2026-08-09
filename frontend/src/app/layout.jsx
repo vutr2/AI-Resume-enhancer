@@ -13,22 +13,22 @@ const beVietnamPro = Be_Vietnam_Pro({
 });
 
 export const metadata = {
-  title: 'ResuMax VN - CV tiếng Anh chuẩn FDI trong 5 phút',
+  title: 'Đậu Việc - CV tiếng Anh chuẩn FDI trong 5 phút',
   description:
     'AI viết CV tiếng Anh chuẩn FDI, tối ưu ATS cho Samsung, LG, Foxconn, Canon. Vượt vòng lọc hồ sơ, tăng cơ hội phỏng vấn tại công ty nước ngoài.',
   keywords: 'CV tiếng Anh, CV FDI, CV apply Samsung, CV apply LG, CV kỹ sư FDI, tối ưu CV ATS, viết CV tiếng Anh',
   openGraph: {
-    title: 'ResuMax VN - CV tiếng Anh chuẩn FDI trong 5 phút',
+    title: 'Đậu Việc - CV tiếng Anh chuẩn FDI trong 5 phút',
     description:
       'AI viết CV tiếng Anh chuẩn FDI, tối ưu ATS cho Samsung, LG, Foxconn, Canon. Vượt vòng lọc hồ sơ, tăng cơ hội phỏng vấn tại công ty nước ngoài.',
     url: 'https://cttech.ltd',
-    siteName: 'ResuMax VN',
+    siteName: 'Đậu Việc',
     locale: 'vi_VN',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'ResuMax VN - CV tiếng Anh chuẩn FDI trong 5 phút',
+    title: 'Đậu Việc - CV tiếng Anh chuẩn FDI trong 5 phút',
     description:
       'AI viết CV tiếng Anh chuẩn FDI, tối ưu ATS cho Samsung, LG, Foxconn, Canon.',
   },

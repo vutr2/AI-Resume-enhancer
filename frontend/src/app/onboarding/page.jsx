@@ -3,10 +3,11 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  FileText, User, Briefcase, MapPin, Phone,
+  User, Briefcase, MapPin, Phone,
   ArrowRight, Check, X, Sparkles, Shield, Mail,
 } from 'lucide-react';
 import Button from '@/components/ui/Button';
+import DauViecLogo from '@/components/ui/DauViecLogo';
 import Input from '@/components/ui/Input';
 import Card from '@/components/ui/Card';
 import ResumeUploader from '@/components/resume/ResumeUploader';
@@ -104,10 +105,8 @@ export default function OnboardingPage() {
       <div className="w-full max-w-lg">
         {/* Logo */}
         <div className="flex items-center justify-center gap-2 mb-8">
-          <div className="w-10 h-10 rounded-xl bg-[var(--primary)] flex items-center justify-center">
-            <FileText className="w-6 h-6 text-white" />
-          </div>
-          <span className="text-2xl font-bold text-[var(--foreground)]">ResuMax VN</span>
+          <DauViecLogo size={40} />
+          <span className="text-2xl font-bold text-[var(--foreground)]">Đậu Việc</span>
         </div>
 
         <Card>

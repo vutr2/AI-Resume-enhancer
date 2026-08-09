@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Mail, ArrowLeft, FileText, CheckCircle } from 'lucide-react';
+import { Mail, ArrowLeft, CheckCircle } from 'lucide-react';
+import DauViecLogo from '@/components/ui/DauViecLogo';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Card from '@/components/ui/Card';
@@ -48,11 +49,9 @@ export default function ForgotPasswordPage() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <Link href="/" className="flex items-center justify-center gap-2 mb-8">
-          <div className="w-10 h-10 rounded-xl bg-[var(--primary)] flex items-center justify-center">
-            <FileText className="w-6 h-6 text-white" />
-          </div>
+          <DauViecLogo size={40} />
           <span className="text-2xl font-bold text-[var(--foreground)]">
-            ResuMax VN
+            Đậu Việc
           </span>
         </Link>
 

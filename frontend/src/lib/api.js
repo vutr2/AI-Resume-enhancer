@@ -1,4 +1,4 @@
-// API Client for ResuMax VN - Serverless Backend
+// API Client for Đậu Việc - Serverless Backend
 const API_BASE_URL = '/api';
 
 class ApiClient {

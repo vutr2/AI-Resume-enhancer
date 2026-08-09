@@ -4,7 +4,7 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import Link from 'next/link';
 import { Upload, FileText, Loader2, ArrowRight, Lock } from 'lucide-react';
 
-const SESSION_KEY = 'resumax_public_score';
+const SESSION_KEY = 'dauviec_public_score';
 
 function ScoreCircle({ score }) {
   const radius = 54;

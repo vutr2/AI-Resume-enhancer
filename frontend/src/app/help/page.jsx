@@ -32,16 +32,16 @@ const faqCategories = [
     icon: HelpCircle,
     questions: [
       {
-        q: 'ResuMax VN là gì?',
-        a: 'ResuMax VN là nền tảng tối ưu hóa CV bằng AI hàng đầu Việt Nam. Chúng tôi giúp bạn tạo CV chuyên nghiệp, tối ưu cho hệ thống ATS, và tăng cơ hội được nhà tuyển dụng chú ý.',
+        q: 'Đậu Việc là gì?',
+        a: 'Đậu Việc là nền tảng tối ưu hóa CV bằng AI hàng đầu Việt Nam. Chúng tôi giúp bạn tạo CV chuyên nghiệp, tối ưu cho hệ thống ATS, và tăng cơ hội được nhà tuyển dụng chú ý.',
       },
       {
         q: 'ATS là gì và tại sao cần tối ưu CV cho ATS?',
-        a: 'ATS (Applicant Tracking System) là hệ thống quản lý ứng viên mà hơn 90% công ty lớn sử dụng để lọc CV. Nếu CV của bạn không được tối ưu cho ATS, nó có thể bị loại trước khi đến tay nhà tuyển dụng. ResuMax VN giúp bạn kiểm tra và tối ưu CV để vượt qua vòng lọc này.',
+        a: 'ATS (Applicant Tracking System) là hệ thống quản lý ứng viên mà hơn 90% công ty lớn sử dụng để lọc CV. Nếu CV của bạn không được tối ưu cho ATS, nó có thể bị loại trước khi đến tay nhà tuyển dụng. Đậu Việc giúp bạn kiểm tra và tối ưu CV để vượt qua vòng lọc này.',
       },
       {
         q: 'Có miễn phí không?',
-        a: 'Có! ResuMax VN cung cấp gói miễn phí cho phép bạn phân tích 3 CV mỗi tháng. Để sử dụng không giới hạn và các tính năng nâng cao, bạn có thể nâng cấp lên gói Pro hoặc Premium.',
+        a: 'Có! Đậu Việc cung cấp 5 lượt phân tích ATS miễn phí khi đăng ký. Để dùng tính năng AI nâng cao (viết lại CV, so khớp JD, thư ứng tuyển), bạn có thể mua lượt mở khoá hoặc Pass 7 ngày.',
       },
       {
         q: 'Dữ liệu CV của tôi có được bảo mật không?',
@@ -56,7 +56,7 @@ const faqCategories = [
     questions: [
       {
         q: 'Định dạng file nào được hỗ trợ?',
-        a: 'ResuMax VN hỗ trợ các định dạng: PDF và DOCX. Chúng tôi khuyến nghị sử dụng PDF để đảm bảo định dạng không bị thay đổi.',
+        a: 'Đậu Việc hỗ trợ các định dạng: PDF và DOCX. Chúng tôi khuyến nghị sử dụng PDF để đảm bảo định dạng không bị thay đổi.',
       },
       {
         q: 'Kích thước file tối đa là bao nhiêu?',
@@ -142,8 +142,8 @@ const faqCategories = [
         a: 'Vào trang Bảng giá hoặc click nút "Nâng cấp" trên thanh điều hướng. Chọn gói phù hợp và thanh toán qua các phương thức: MoMo, VNPay, hoặc ZaloPay.',
       },
       {
-        q: 'Có thể hủy gói Premium không?',
-        a: 'Có, bạn có thể hủy bất cứ lúc nào. Sau khi hủy, bạn vẫn được sử dụng đến hết chu kỳ thanh toán hiện tại.',
+        q: 'Lượt mở khoá có hết hạn không?',
+        a: 'Lượt mở khoá CV không hết hạn — một lần mở khoá là vĩnh viễn cho CV đó. Pass 7 ngày có hiệu lực trong 7 ngày kể từ ngày mua.',
       },
       {
         q: 'Thanh toán có an toàn không?',
@@ -188,7 +188,7 @@ const guides = [
     icon: Target,
     steps: [
       'Copy mô tả công việc (JD) từ tin tuyển dụng',
-      'Dán vào công cụ So khớp JD của ResuMax',
+      'Dán vào công cụ So khớp JD của Đậu Việc',
       'Xem danh sách từ khóa còn thiếu',
       'Thêm các kỹ năng/kinh nghiệm phù hợp vào CV',
       'Kiểm tra lại độ khớp và tải CV mới',

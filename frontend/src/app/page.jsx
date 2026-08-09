@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import ResumeScoreWidget from '@/components/landing/ResumeScoreWidget';
+import DauViecLogo from '@/components/ui/DauViecLogo';
 import {
   ArrowRight, FileText, Target, CheckCircle, Sparkles, Shield,
   Zap, PenTool, BarChart3, Gift, Share2, Wallet, GraduationCap,
@@ -195,10 +196,8 @@ export default function HomePage() {
         <div className="container mx-auto px-4">
           <nav className="flex items-center justify-between h-16">
             <Link href="/" className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-lg bg-[var(--primary)] flex items-center justify-center">
-                <FileText className="w-5 h-5 text-white" />
-              </div>
-              <span className="text-lg font-bold text-[var(--foreground)]">ResuMax <span className="text-[var(--primary)]">VN</span></span>
+              <DauViecLogo size={36} />
+              <span className="text-lg font-bold text-[var(--foreground)]">Đậu Việc</span>
             </Link>
 
             <div className="hidden md:flex items-center gap-6 text-sm font-medium text-[var(--foreground-secondary)]">
@@ -376,7 +375,7 @@ export default function HomePage() {
         <div className="container mx-auto max-w-4xl">
           <div className="text-center mb-12">
             <h2 className="text-2xl md:text-3xl font-bold text-[var(--foreground)] mb-3">
-              Tại sao chọn ResuMax VN?
+              Tại sao chọn Đậu Việc?
             </h2>
           </div>
 
@@ -406,7 +405,7 @@ export default function HomePage() {
               Dành cho ai?
             </h2>
             <p className="text-[var(--foreground-secondary)]">
-              ResuMax VN được tạo ra cho người Việt muốn vào công ty FDI
+              Đậu Việc được tạo ra cho người Việt muốn vào công ty FDI
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
@@ -501,7 +500,7 @@ export default function HomePage() {
             <div className="w-6 h-6 rounded bg-[var(--primary)] flex items-center justify-center">
               <FileText className="w-3.5 h-3.5 text-white" />
             </div>
-            <span className="font-medium text-[var(--foreground-secondary)]">ResuMax VN</span>
+            <span className="font-medium text-[var(--foreground-secondary)]">Đậu Việc</span>
             <span>· © 2026 C&T Technology Company</span>
           </div>
           <div className="flex items-center gap-5">

@@ -75,7 +75,7 @@ export async function POST(request) {
       order_invoice_number: orderId,
       order_amount: amount,
       currency: 'VND',
-      order_description: `ResuMax VN - ${pkg.label}`,
+      order_description: `Đậu Việc - ${pkg.label}`,
       customer_id: decoded.descopeId,
       success_url: `${APP_URL}/api/payments/sepay/callback?status=success&orderId=${orderId}`,
       error_url: `${APP_URL}/api/payments/sepay/callback?status=failed&orderId=${orderId}`,

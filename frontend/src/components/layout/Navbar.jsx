@@ -16,6 +16,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useDescope, useUser } from '@descope/nextjs-sdk/client';
 import { useAuthStore } from '@/store/useAuthStore';
 import Button from '@/components/ui/Button';
+import DauViecLogo from '@/components/ui/DauViecLogo';
 
 export default function Navbar() {
   const router = useRouter();
@@ -55,7 +56,7 @@ export default function Navbar() {
   const notifications = [
     { id: 1, text: 'CV của bạn đã được phân tích xong', time: '5 phút trước', read: false },
     { id: 2, text: 'Điểm ATS đã được cải thiện', time: '1 giờ trước', read: false },
-    { id: 3, text: 'Chào mừng bạn đến với ResuMax VN!', time: '2 ngày trước', read: true },
+    { id: 3, text: 'Chào mừng bạn đến với Đậu Việc!', time: '2 ngày trước', read: true },
   ];
 
   const unreadCount = notifications.filter((n) => !n.read).length;
@@ -65,11 +66,9 @@ export default function Navbar() {
       <div className="flex items-center justify-between h-16 px-4 lg:px-6">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2">
-          <div className="w-9 h-9 rounded-lg bg-[var(--primary)] flex items-center justify-center">
-            <FileText className="w-5 h-5 text-white" />
-          </div>
+          <DauViecLogo size={36} />
           <span className="font-bold text-xl text-[var(--foreground)] hidden sm:block">
-            ResuMax VN
+            Đậu Việc
           </span>
         </Link>
 
