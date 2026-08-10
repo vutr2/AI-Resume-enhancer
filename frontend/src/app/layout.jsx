@@ -35,6 +35,10 @@ export const metadata = {
 };
 
 const PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID;
+const GA4_ID = process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID?.startsWith('G-') &&
+  process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID !== 'G-XXXXXXXXXX'
+  ? process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID
+  : null;
 
 export default function RootLayout({ children }) {
   return (
@@ -55,6 +59,28 @@ export default function RootLayout({ children }) {
             }}
           />
         </AuthProvider>
+
+        {/* Google Analytics GA4 — only loads when NEXT_PUBLIC_GA4_MEASUREMENT_ID is set */}
+        {GA4_ID && (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${GA4_ID}`}
+              strategy="afterInteractive"
+            />
+            <Script
+              id="ga4-init"
+              strategy="afterInteractive"
+              dangerouslySetInnerHTML={{
+                __html: `
+                  window.dataLayer = window.dataLayer || [];
+                  function gtag(){dataLayer.push(arguments);}
+                  gtag('js', new Date());
+                  gtag('config', '${GA4_ID}', { page_path: window.location.pathname });
+                `,
+              }}
+            />
+          </>
+        )}
 
         {/* Meta Pixel — only loads when NEXT_PUBLIC_META_PIXEL_ID is set */}
         {PIXEL_ID && (
