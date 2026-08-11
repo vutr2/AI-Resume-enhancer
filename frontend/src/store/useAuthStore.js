@@ -157,6 +157,8 @@ export const useAuthStore = create(
         if (cvId && Array.isArray(user.unlockedCvIds) && user.unlockedCvIds.includes(String(cvId))) {
           return true;
         }
+        // Paid credits — treat as full access
+        if ((user.paidCredits || 0) > 0) return true;
         return false;
       },
       updateCreditState: ({ freeCredits, paidCredits, unlockedCvIds, passExpiresAt } = {}) => {
