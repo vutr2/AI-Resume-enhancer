@@ -5,7 +5,7 @@
  *   1. Active 7-day pass
  *   2. Legacy pro subscription (within expiry)
  *   3. CV-specific unlock (cvId in unlockedCvIds)
- *   4. Paid credits available (can unlock)
+ *   4. Paid credits → full access (purchase grants unlock rights)
  *   5. Free credits available (limited access)
  *   6. No access (locked)
  */
@@ -98,21 +98,27 @@ describe('getUserAccess', () => {
     expect(result.level).toBe('limited');
   });
 
-  // 4. Paid credits
-  it('returns limited with canUnlock=true when user has paidCredits and a cvId', async () => {
+  // 4. Paid credits → full access
+  it('returns full access when user has paidCredits > 0', async () => {
     mockFindOne.mockResolvedValue(user({ paidCredits: 2, freeCredits: 0 }));
     const result = await getUserAccess('u-123', 'cv-abc');
-    expect(result.level).toBe('limited');
-    expect(result.reason).toBe('has_paid_credits');
-    expect(result.canUnlock).toBe(true);
+    expect(result.level).toBe('full');
+    expect(result.reason).toBe('paid_credits');
     expect(result.paidCredits).toBe(2);
   });
 
-  it('returns canUnlock=false when there is no cvId even with paidCredits', async () => {
+  it('returns full access with paidCredits even without cvId', async () => {
     mockFindOne.mockResolvedValue(user({ paidCredits: 1, freeCredits: 0 }));
     const result = await getUserAccess('u-123', null);
+    expect(result.level).toBe('full');
+    expect(result.reason).toBe('paid_credits');
+  });
+
+  it('falls through to free_credits when paidCredits is 0', async () => {
+    mockFindOne.mockResolvedValue(user({ paidCredits: 0, freeCredits: 3 }));
+    const result = await getUserAccess('u-123');
     expect(result.level).toBe('limited');
-    expect(result.canUnlock).toBe(false);
+    expect(result.reason).toBe('free_credits');
   });
 
   // 5. Free credits

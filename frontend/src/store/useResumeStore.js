@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import api from '@/lib/api';
+import { useAuthStore } from '@/store/useAuthStore';
 
 // Limits to prevent unbounded memory growth
 const MAX_RESUMES = 50;
@@ -266,6 +267,13 @@ export const useResumeStore = create((set, get) => ({
             r._id === resumeId ? { ...r, scores: newScores, analysis: newAnalysis } : r
           ),
         }));
+        // Sync credit balance if server returned updated values
+        if (response.data.freeCredits !== undefined || response.data.paidCredits !== undefined) {
+          useAuthStore.getState().updateCreditState({
+            freeCredits: response.data.freeCredits,
+            paidCredits: response.data.paidCredits,
+          });
+        }
         return { success: true, scores: newScores, analysis: newAnalysis };
       }
       throw new Error(response.message || 'Phân tích CV thất bại');

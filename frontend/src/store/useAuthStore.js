@@ -175,6 +175,22 @@ export const useAuthStore = create(
         });
       },
 
+      // Consume 1 paidCredit and permanently register cvId as unlocked
+      unlockCv: async (cvId) => {
+        try {
+          const response = await api.unlockCv(cvId);
+          if (response.success) {
+            get().updateCreditState({
+              paidCredits: response.data.paidCredits,
+              unlockedCvIds: response.data.unlockedCvIds,
+            });
+          }
+          return response;
+        } catch {
+          return { success: false };
+        }
+      },
+
       clearError: () => set({ error: null }),
       setInitialized: (value) => set({ isInitialized: value }),
     }),

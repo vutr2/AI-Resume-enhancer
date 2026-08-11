@@ -3,6 +3,7 @@ import dbConnect from '@/lib/db';
 import Resume from '@/models/Resume';
 import { getCurrentUser } from '@/lib/auth';
 import { callOpenAI, SYSTEM_PROMPTS } from '@/lib/openai';
+import { getUserAccess, consumeFreeCredit } from '@/lib/access';
 import { rateLimitMiddleware } from '@/lib/rateLimit';
 
 const MAX_JOB_DESC_LENGTH = 10000;
@@ -34,6 +35,20 @@ export async function POST(request) {
       return NextResponse.json(
         { success: false, message: 'Vui lòng cung cấp ID của CV' },
         { status: 400 }
+      );
+    }
+
+    // Access control
+    const access = await getUserAccess(decoded.descopeId, resumeId);
+    if (access.level === 'locked') {
+      return NextResponse.json(
+        {
+          success: false,
+          message: 'Bạn đã dùng hết lượt phân tích ATS. Mua thêm lượt để tiếp tục.',
+          code: 'NO_CREDITS',
+          data: { freeCredits: 0, paidCredits: 0 },
+        },
+        { status: 403 }
       );
     }
 
@@ -155,6 +170,17 @@ export async function POST(request) {
       resume.status = 'analyzed';
       await resume.save();
 
+      // Deduct 1 free credit after a real AI call (not cache)
+      // Skip only for unlimited plans (pass / legacy pro)
+      let freeCreditsRemaining = access.freeCredits ?? 0;
+      const isUnlimited = access.reason === 'pass' || access.reason === 'legacy_pro';
+      if (!isUnlimited) {
+        const consumed = await consumeFreeCredit(decoded.descopeId);
+        if (consumed.success) {
+          freeCreditsRemaining = consumed.freeCredits ?? Math.max(0, freeCreditsRemaining - 1);
+        }
+      }
+
       return NextResponse.json(
         {
           success: true,
@@ -162,6 +188,8 @@ export async function POST(request) {
           data: {
             scores: resume.scores,
             analysis: resume.analysis,
+            freeCredits: freeCreditsRemaining,
+            paidCredits: access.paidCredits ?? 0,
           },
         },
         { status: 200 }

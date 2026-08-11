@@ -15,6 +15,10 @@ vi.mock('@/lib/db', () => ({ default: vi.fn() }));
 vi.mock('@/lib/rateLimit', () => ({
   rateLimitMiddleware: vi.fn().mockResolvedValue({ limited: false, headers: {} }),
 }));
+vi.mock('@/lib/access', () => ({
+  getUserAccess:     vi.fn().mockResolvedValue({ level: 'limited', reason: 'free_credits', freeCredits: 3 }),
+  consumeFreeCredit: vi.fn().mockResolvedValue({ success: true, freeCredits: 2 }),
+}));
 vi.mock('@/lib/openai', () => ({
   callOpenAI: (...a) => mockCallAI(...a),
   SYSTEM_PROMPTS: { analyzeResume: 'ANALYZE_PROMPT' },

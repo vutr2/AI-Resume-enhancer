@@ -54,8 +54,8 @@ describe('SYSTEM_PROMPTS.analyzeResume', () => {
   });
 
   it('explains fdiScore calculation criteria', () => {
-    expect(SYSTEM_PROMPTS.analyzeResume).toMatch(/tiếng Anh/);
-    expect(SYSTEM_PROMPTS.analyzeResume).toMatch(/số liệu/);
+    expect(SYSTEM_PROMPTS.analyzeResume).toMatch(/englishQuality/);
+    expect(SYSTEM_PROMPTS.analyzeResume).toMatch(/hasQuantifiedAchievements/);
   });
 });
 

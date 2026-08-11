@@ -16,9 +16,9 @@ vi.mock('@/lib/db', () => ({ default: vi.fn() }));
 vi.mock('@/lib/affiliate', () => ({ COMMISSION_RATE: 0.5 }));
 vi.mock('@/lib/packages', () => ({
   PACKAGES: {
-    credit_1:   { id: 'credit_1',  credits: 1, passDays: 0, price: 10000 },
-    credit_3:   { id: 'credit_3',  credits: 3, passDays: 0, price: 25000 },
-    week_pass:  { id: 'week_pass', credits: 0, passDays: 7, price: 99000 },
+    credit_1:  { id: 'credit_1',  credits: 1, freeCreditsBonus: 1, passDays: 0, price: 10000 },
+    credit_3:  { id: 'credit_3',  credits: 3, freeCreditsBonus: 3, passDays: 0, price: 25000 },
+    week_pass: { id: 'week_pass', credits: 0, freeCreditsBonus: 0, passDays: 7, price: 99000 },
   },
 }));
 
@@ -159,7 +159,7 @@ describe('POST /api/payments/sepay/ipn', () => {
 
   // ── New credit model: package grants ──────────────────────────────────
 
-  it('grants paidCredits for credit_1 package', async () => {
+  it('grants paidCredits +1 AND freeCredits +1 for credit_1 package', async () => {
     mockPaymentFindOne.mockResolvedValue(mockPayment);
     mockUserFindByIdAndUpdate.mockResolvedValue({ descopeId: 'user-ds' });
     mockReferralFindOne.mockResolvedValue(null);
@@ -168,12 +168,12 @@ describe('POST /api/payments/sepay/ipn', () => {
 
     expect(mockUserFindByIdAndUpdate).toHaveBeenCalledWith(
       'user-db-id',
-      expect.objectContaining({ $inc: { paidCredits: 1 } }),
+      expect.objectContaining({ $inc: { paidCredits: 1, freeCredits: 1 } }),
       expect.anything()
     );
   });
 
-  it('grants paidCredits: 3 for credit_3 package', async () => {
+  it('grants paidCredits +3 AND freeCredits +3 for credit_3 package', async () => {
     mockPayment.package = 'credit_3';
     mockPaymentFindOne.mockResolvedValue(mockPayment);
     mockUserFindByIdAndUpdate.mockResolvedValue({ descopeId: 'user-ds' });
@@ -183,12 +183,12 @@ describe('POST /api/payments/sepay/ipn', () => {
 
     expect(mockUserFindByIdAndUpdate).toHaveBeenCalledWith(
       'user-db-id',
-      expect.objectContaining({ $inc: { paidCredits: 3 } }),
+      expect.objectContaining({ $inc: { paidCredits: 3, freeCredits: 3 } }),
       expect.anything()
     );
   });
 
-  it('sets passExpiresAt for week_pass (no $inc)', async () => {
+  it('sets passExpiresAt for week_pass — no paidCredits, no freeCredits increment', async () => {
     mockPayment.package = 'week_pass';
     mockPaymentFindOne.mockResolvedValue(mockPayment);
     mockUserFindByIdAndUpdate.mockResolvedValue({ descopeId: 'user-ds' });
@@ -198,6 +198,7 @@ describe('POST /api/payments/sepay/ipn', () => {
 
     const [, updateOp] = mockUserFindByIdAndUpdate.mock.calls[0];
     expect(updateOp.$set.passExpiresAt).toBeDefined();
+    // No credit increments — pass is unlimited, no counters needed
     expect(updateOp.$inc).toBeUndefined();
   });
 

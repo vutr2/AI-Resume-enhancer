@@ -84,9 +84,19 @@ function CategoryRowLocked({ label }) {
 
 export default function ATSTab({ resume, onTabChange }) {
   const { analyzeATS, scores, analysis, isAnalyzing } = useResumeStore();
-  const { hasFullAccess } = useAuthStore();
+  const { hasFullAccess, isCvUnlocked, getPaidCredits, hasActivePass, unlockCv } = useAuthStore();
 
   const unlocked = hasFullAccess(resume?._id);
+
+  // Auto-consume 1 paidCredit and register CV as unlocked when user has credits but CV not yet registered
+  useEffect(() => {
+    if (!resume?._id) return;
+    const needsUnlock = getPaidCredits() > 0 && !isCvUnlocked(resume._id) && !hasActivePass();
+    if (needsUnlock) {
+      unlockCv(resume._id);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resume?._id]);
   // Fallback to resume prop's analysis when store's analysis state is null (e.g. after page reload)
   const topFixes = analysis?.topFixes?.length ? analysis.topFixes : (resume?.analysis?.topFixes || []);
   const working   = analysis?.working?.length  ? analysis.working  : (resume?.analysis?.working  || []);

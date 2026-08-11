@@ -55,7 +55,13 @@ vi.mock('@/store/useResumeStore', () => ({
   useResumeStore: (selector) => selector ? selector(mockResumeStore) : mockResumeStore,
 }));
 
-const mockAuthStore = { hasFullAccess: vi.fn().mockReturnValue(false) };
+const mockAuthStore = {
+  hasFullAccess:  vi.fn().mockReturnValue(false),
+  isCvUnlocked:  vi.fn().mockReturnValue(false),
+  getPaidCredits: vi.fn().mockReturnValue(0),
+  hasActivePass:  vi.fn().mockReturnValue(false),
+  unlockCv:       vi.fn().mockResolvedValue({ success: true }),
+};
 vi.mock('@/store/useAuthStore', () => ({
   useAuthStore: (selector) => selector ? selector(mockAuthStore) : mockAuthStore,
 }));
@@ -80,6 +86,12 @@ const TOP_FIXES = [
 ];
 
 const WORKING = ['Format PDF chuẩn', 'Có thông tin liên hệ đầy đủ'];
+
+const ATS_ISSUES = [
+  { severity: 'high',   description: 'Thiếu số liệu định lượng', suggestion: 'Thêm % và số người' },
+  { severity: 'medium', description: 'Dùng bảng trong CV',       suggestion: 'Chuyển sang bullet' },
+  { severity: 'low',    description: 'Thiếu từ khóa Docker',     suggestion: 'Thêm vào skills' },
+];
 
 const CATEGORIES = [
   'contentScore', 'atsScore', 'keywordScore', 'formatScore', 'readabilityScore', 'fdiScore',
@@ -253,11 +265,10 @@ describe('ATSTab — top fixes (locked user)', () => {
     expect(screen.getByText('72')).toBeInTheDocument();
   });
 
-  it('"Mở khóa" button calls onTabChange("rewrite")', () => {
-    const onTabChange = vi.fn();
-    render(<ATSTab resume={RESUME} onTabChange={onTabChange} />);
-    fireEvent.click(screen.getByTestId('cta-rewrite'));
-    expect(onTabChange).toHaveBeenCalledWith('rewrite');
+  it('"Mở khóa" button links to /payment (not onTabChange)', () => {
+    renderATSTab();
+    const cta = screen.getByTestId('cta-rewrite');
+    expect(cta.closest('a')).toHaveAttribute('href', '/payment');
   });
 });
 
@@ -265,7 +276,7 @@ describe('ATSTab — top fixes (unlocked user)', () => {
   beforeEach(() => {
     setStoreState({
       scores: SCORES,
-      analysis: { topFixes: TOP_FIXES, working: [] },
+      analysis: { topFixes: TOP_FIXES, working: [], atsIssues: ATS_ISSUES },
     });
     mockAuthStore.hasFullAccess.mockReturnValue(true);
   });
@@ -275,7 +286,7 @@ describe('ATSTab — top fixes (unlocked user)', () => {
     const locked = screen.queryAllByTestId('fix-locked');
     expect(locked).toHaveLength(0);
     const visible = screen.getAllByTestId('fix-visible');
-    expect(visible.length).toBeGreaterThan(0);
+    expect(visible.length).toBe(ATS_ISSUES.length);
   });
 
   it('no blur overlay when unlocked', () => {
