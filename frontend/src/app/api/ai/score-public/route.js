@@ -94,9 +94,9 @@ export async function POST(request) {
     }
 
     const analysis = await callOpenAI(
-      SYSTEM_PROMPTS.analyzeResume,
-      `Phân tích và chấm điểm CV sau:\n\nCV Content:\n${rawText}`,
-      { model: 'claude-haiku-4-5-20251001', maxTokens: 600, temperature: 0.1 }
+      SYSTEM_PROMPTS.scorePublic,
+      `Chấm điểm CV sau:\n\n${rawText}`,
+      { model: 'claude-haiku-4-5-20251001', maxTokens: 400, temperature: 0.1 }
     );
 
     const scoresData = analysis.scores || analysis;

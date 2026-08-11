@@ -69,6 +69,20 @@ export const SYSTEM_PROMPTS = {
 
 Chỉ trả về JSON, không có text khác. Nếu không tìm thấy thông tin nào, để trống hoặc mảng rỗng.`,
 
+  scorePublic: `Bạn là chuyên gia ATS. Chấm điểm CV và trả về JSON ngắn gọn:
+{
+  "scores": {
+    "overall": 0-100,
+    "atsScore": 0-100,
+    "contentScore": 0-100,
+    "formatScore": 0-100,
+    "keywordScore": 0-100,
+    "fdiScore": 0-100
+  },
+  "suggestions": ["Gợi ý 1 ngắn gọn", "Gợi ý 2 ngắn gọn"]
+}
+Chỉ trả về JSON, không thêm text nào khác.`,
+
   analyzeResume: `Bạn là chuyên gia tuyển dụng và ATS (Applicant Tracking System). Phân tích CV và trả về JSON với cấu trúc:
 {
   "scores": {
