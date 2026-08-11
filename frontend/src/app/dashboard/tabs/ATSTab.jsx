@@ -193,56 +193,64 @@ export default function ATSTab({ resume, onTabChange }) {
             ))}
           </div>
 
-          {/* Fixes — blurred rows + floating unlock card */}
+          {/* Fixes — blurred rows + unlock card in normal flow */}
           {topFixes.length > 0 && (
             <div data-testid="top-fixes">
               <p className="text-[10px] font-bold tracking-[0.25em] text-[var(--foreground-muted)] uppercase mb-3 px-1">
                 Phần mềm ATS phát hiện
               </p>
 
-              <div className="relative" style={{ minHeight: `${topFixes.length * 64 + 160}px` }}>
-                {/* Blurred fix rows */}
+              {/* Blurred rows with gradient fade at bottom */}
+              <div className="relative">
                 <div className="space-y-2 select-none pointer-events-none" aria-hidden>
                   {topFixes.map((fix, i) => (
                     <div
                       key={i}
-                      className="flex items-center justify-between px-5 py-4 rounded-xl border border-[var(--border)] bg-[var(--background)] blur-sm opacity-40"
+                      className="flex items-center justify-between px-5 py-4 rounded-xl border border-[var(--border)] bg-[var(--background)]"
                       data-testid="fix-locked"
                     >
                       <div className="flex items-center gap-3 min-w-0">
                         <span className="text-xs font-bold text-[var(--primary)] shrink-0">0{i + 1}</span>
-                        <span className="text-sm font-medium text-[var(--foreground)] truncate">{fix.title}</span>
+                        <span
+                          className="text-sm font-medium text-[var(--foreground)] truncate"
+                          style={{ filter: 'blur(5px)' }}
+                        >
+                          {fix.title}
+                        </span>
                       </div>
                       <Lock className="w-3.5 h-3.5 text-[var(--foreground-muted)] shrink-0 ml-3" />
                     </div>
                   ))}
                 </div>
-
-                {/* Floating unlock card */}
+                {/* Gradient fade at the bottom of the rows */}
                 <div
-                  className="absolute inset-x-0 bottom-0 flex justify-center pb-2"
-                  data-testid="fixes-blur-overlay"
-                >
-                  <div className="w-full max-w-sm rounded-2xl border border-[var(--border)] bg-[var(--background)] shadow-xl p-8 text-center">
-                    <div className="w-12 h-12 rounded-full bg-[var(--primary)]/10 flex items-center justify-center mx-auto mb-4">
-                      <Lock className="w-6 h-6 text-[var(--primary)]" />
-                    </div>
-                    <p className="font-semibold text-[var(--foreground)] mb-2">
-                      Xem chi tiết từng lỗi
-                    </p>
-                    <p className="text-sm text-[var(--foreground-secondary)] mb-6 leading-relaxed">
-                      {topFixes.length} lỗi đã tìm thấy. Mở khoá để xem chi tiết và gợi ý sửa sẵn dán.
-                    </p>
-                    <Button
-                      onClick={() => onTabChange?.('rewrite')}
-                      className="w-full gap-2"
-                      data-testid="cta-rewrite"
-                    >
-                      Mở khoá tất cả {topFixes.length} lỗi
-                      <ChevronRight className="w-4 h-4" />
-                    </Button>
-                  </div>
+                  className="absolute inset-x-0 bottom-0 h-12 pointer-events-none"
+                  style={{ background: 'linear-gradient(to bottom, transparent, var(--background))' }}
+                />
+              </div>
+
+              {/* Unlock card — normal flow, directly below blurred rows */}
+              <div
+                className="mt-3 rounded-2xl border border-[var(--border)] bg-[var(--background)] shadow-lg p-7 text-center"
+                data-testid="fixes-blur-overlay"
+              >
+                <div className="w-12 h-12 rounded-full bg-[var(--primary)]/10 flex items-center justify-center mx-auto mb-4">
+                  <Lock className="w-6 h-6 text-[var(--primary)]" />
                 </div>
+                <p className="font-semibold text-[var(--foreground)] mb-2">
+                  Xem chi tiết từng lỗi
+                </p>
+                <p className="text-sm text-[var(--foreground-secondary)] mb-5 leading-relaxed">
+                  {topFixes.length} lỗi đã tìm thấy. Mở khoá để xem chi tiết và gợi ý sửa sẵn dán.
+                </p>
+                <Button
+                  onClick={() => onTabChange?.('rewrite')}
+                  className="w-full gap-2"
+                  data-testid="cta-rewrite"
+                >
+                  Mở khoá tất cả {topFixes.length} lỗi
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
               </div>
             </div>
           )}
