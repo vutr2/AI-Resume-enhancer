@@ -4,7 +4,6 @@ import Resume from '@/models/Resume';
 import { getCurrentUser } from '@/lib/auth';
 import { callOpenAI, SYSTEM_PROMPTS } from '@/lib/openai';
 import { rateLimitMiddleware } from '@/lib/rateLimit';
-import { cachedAICall } from '@/lib/cache';
 
 const MAX_JOB_DESC_LENGTH = 10000;
 
@@ -84,15 +83,10 @@ export async function POST(request) {
 
     try {
       // Call AI with content-hash cache (24h TTL) — same CV content won't re-call Claude
-      const analysis = await cachedAICall(
-        analysisContent,
-        'analyze',
-        null,
-        () => callOpenAI(
-          SYSTEM_PROMPTS.analyzeResume,
-          `Phân tích và chấm điểm CV sau:\n\n${analysisContent}`,
-          { model: 'claude-haiku-4-5-20251001', maxTokens: 2000, temperature: 0.1 }
-        )
+      const analysis = await callOpenAI(
+        SYSTEM_PROMPTS.analyzeResume,
+        `Phân tích và chấm điểm CV sau:\n\n${analysisContent}`,
+        { model: 'claude-haiku-4-5-20251001', maxTokens: 2000, temperature: 0.1 }
       );
 
       // Normalize atsIssues to match schema format

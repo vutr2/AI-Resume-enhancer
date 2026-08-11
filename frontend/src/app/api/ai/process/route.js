@@ -5,7 +5,6 @@ import { getCurrentUser } from '@/lib/auth';
 import { callOpenAI } from '@/lib/openai';
 import { getUserAccess, consumeFreeCredit } from '@/lib/access';
 import { rateLimitMiddleware } from '@/lib/rateLimit';
-import { cachedAICall } from '@/lib/cache';
 
 // Combined system prompt for both parsing AND analyzing in one call
 const COMBINED_PROMPT = `Bạn là chuyên gia phân tích CV và ATS (Applicant Tracking System).
@@ -188,12 +187,7 @@ export async function POST(request) {
       }
 
       // Cached AI call - same CV text = same result from cache
-      const result = await cachedAICall(
-        resume.rawText,
-        'process',
-        jobDescription || '',
-        () => callOpenAI(COMBINED_PROMPT, content, { model: 'claude-haiku-4-5-20251001', maxTokens: 5000, temperature: 0.1 })
-      );
+      const result = await callOpenAI(COMBINED_PROMPT, content, { model: 'claude-haiku-4-5-20251001', maxTokens: 5000, temperature: 0.1 });
 
       console.log('AI Process result received');
 
