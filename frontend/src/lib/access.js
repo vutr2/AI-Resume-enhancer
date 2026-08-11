@@ -56,11 +56,12 @@ export async function getUserAccess(descopeId, cvId = null) {
     }
   }
 
-  // 4. Paid credits — full access (one purchase unlocks everything)
+  // 4. Paid credits available — user can unlock a CV but hasn't yet
   if ((user.paidCredits || 0) > 0) {
     return {
-      level: 'full',
-      reason: 'paid_credits',
+      level: 'limited',
+      reason: 'has_paid_credits',
+      canUnlock: !!cvId,
       paidCredits: user.paidCredits,
       freeCredits: user.freeCredits ?? 0,
     };

@@ -107,7 +107,7 @@ const bottomItems = [
 export default function Sidebar({ activeTab, onTabChange, collapsed, onToggleCollapse }) {
   const pathname = usePathname();
   const { currentResume } = useResumeStore();
-  const { user, hasFullAccess, hasActivePass } = useAuthStore();
+  const { user, hasFullAccess, hasActivePass, getFreeCredits, getPaidCredits } = useAuthStore();
   const [upgradeModal, setUpgradeModal] = useState(false);
 
   const cvId = currentResume?._id;
@@ -289,14 +289,28 @@ export default function Sidebar({ activeTab, onTabChange, collapsed, onToggleCol
           </div>
         )}
 
-        {/* Pass status — only shown when active */}
-        {!collapsed && user && hasActivePass() && (
+        {/* Credits Display */}
+        {!collapsed && user && (
           <div className="p-4 border-t border-[var(--border)]">
-            <div className="p-3 bg-[var(--background-secondary)] rounded-lg">
-              <div className="flex items-center gap-2">
-                <Zap className="w-4 h-4 text-emerald-500" />
-                <p className="text-xs text-emerald-500 font-semibold">Pass 7 ngày đang hoạt động</p>
+            <div className="p-3 bg-[var(--background-secondary)] rounded-lg space-y-1.5">
+              <div className="flex items-center gap-2 mb-1">
+                <Zap className="w-4 h-4 text-amber-500" />
+                <span className="text-sm font-medium text-[var(--foreground)]">Tài khoản</span>
               </div>
+              {hasActivePass() ? (
+                <p className="text-xs text-emerald-500 font-semibold">Pass 7 ngày đang hoạt động</p>
+              ) : (
+                <>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-[var(--foreground-muted)]">Lượt phân tích ATS</span>
+                    <span className="font-semibold text-[var(--foreground)]">{getFreeCredits()}</span>
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-[var(--foreground-muted)]">Lượt mở khoá CV</span>
+                    <span className="font-semibold text-[var(--foreground)]">{getPaidCredits()}</span>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         )}
