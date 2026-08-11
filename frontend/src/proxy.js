@@ -19,6 +19,7 @@ const descopeAuth = authMiddleware({
     '/api/payments/sepay/callback',
     '/api/payments/sepay/ipn',
     '/api/ai/score-public',
+    '/kiem-tra-ats',
   ],
 
   // Redirect unauthenticated users to login
