@@ -69,12 +69,14 @@ function CategoryBar({ label, score }) {
   );
 }
 
-/* Locked version — shows score number + lock icon, no bar */
 function CategoryRowLocked({ label, score }) {
   return (
-    <div className="flex items-center justify-between py-3 border-b border-[var(--border)] last:border-0" data-testid="category-bar">
+    <div
+      className="flex items-center justify-between px-5 py-4 border-b border-[var(--border)] last:border-0"
+      data-testid="category-bar"
+    >
       <span className="text-sm text-[var(--foreground)]">{label}</span>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2.5">
         <span className="text-sm font-semibold tabular-nums text-[var(--foreground)]">{score}</span>
         <Lock className="w-3.5 h-3.5 text-[var(--foreground-muted)]" />
       </div>
@@ -146,7 +148,7 @@ export default function ATSTab({ resume, onTabChange }) {
 
   /* ── Results ── */
   return (
-    <div className="max-w-2xl mx-auto space-y-4" data-testid="ats-results">
+    <div className="max-w-2xl mx-auto space-y-3" data-testid="ats-results">
 
       {/* Reanalyze button */}
       <div className="flex justify-end">
@@ -164,86 +166,85 @@ export default function ATSTab({ resume, onTabChange }) {
       {/* ── LOCKED VIEW ── */}
       {!unlocked ? (
         <>
-          {/* Score hero */}
+          {/* Score hero card */}
           <Card>
-            <div className="text-center py-4">
-              <p className="text-xs font-semibold tracking-widest text-[var(--foreground-muted)] uppercase mb-3">
+            <div className="text-center px-6 py-8">
+              <p className="text-[10px] font-bold tracking-[0.25em] text-[var(--foreground-muted)] uppercase mb-5">
                 CV của bạn đạt điểm
               </p>
-              <div className="flex items-baseline justify-center gap-1 mb-3">
-                <span className="text-6xl font-bold text-[var(--foreground)]">{overall}</span>
-                <span className="text-2xl text-[var(--foreground-muted)] font-normal">/100</span>
+              <div className="flex items-baseline justify-center gap-2 mb-5">
+                <span className="text-8xl font-bold tracking-tight text-[var(--foreground)]">{overall}</span>
+                <span className="text-3xl font-light text-[var(--foreground-muted)]">/100</span>
               </div>
               {topFixes.length > 0 && (
-                <p className="text-sm text-[var(--foreground-secondary)] max-w-sm mx-auto">
+                <p className="text-sm text-[var(--foreground-secondary)] max-w-xs mx-auto leading-relaxed">
                   Được chấm bởi AI theo tiêu chuẩn FDI. Tìm thấy{' '}
-                  <strong className="text-[var(--foreground)]">{topFixes.length} lỗi</strong>{' '}
-                  cần sửa. Mở khóa để xem chi tiết từng lỗi và cách fix.
+                  <strong className="text-[var(--foreground)] font-semibold">{topFixes.length} lỗi</strong>{' '}
+                  cần sửa. Mở khoá để xem chi tiết từng lỗi.
                 </p>
               )}
             </div>
           </Card>
 
-          {/* Category list — locked rows */}
-          <Card>
-            <div className="-my-1">
-              {CATEGORIES.map((c) => (
-                <CategoryRowLocked key={c.key} label={c.label} score={scores[c.key] || 0} />
-              ))}
-            </div>
-          </Card>
+          {/* Category list — locked rows, no inner padding (rows handle their own) */}
+          <div className="rounded-xl border border-[var(--border)] overflow-hidden bg-[var(--background)]">
+            {CATEGORIES.map((c) => (
+              <CategoryRowLocked key={c.key} label={c.label} score={scores[c.key] || 0} />
+            ))}
+          </div>
 
-          {/* Fixes — all blurred with unlock overlay */}
+          {/* Fixes — blurred rows + floating unlock card */}
           {topFixes.length > 0 && (
-            <Card data-testid="top-fixes">
-              <p className="text-xs font-semibold tracking-widest text-[var(--foreground-muted)] uppercase mb-4">
+            <div data-testid="top-fixes">
+              <p className="text-[10px] font-bold tracking-[0.25em] text-[var(--foreground-muted)] uppercase mb-3 px-1">
                 Phần mềm ATS phát hiện
               </p>
 
-              {/* Blurred list */}
-              <div className="relative overflow-hidden" style={{ minHeight: '200px' }}>
-                <div className="space-y-4 select-none pointer-events-none blur-sm opacity-50" aria-hidden>
+              <div className="relative" style={{ minHeight: `${topFixes.length * 64 + 160}px` }}>
+                {/* Blurred fix rows */}
+                <div className="space-y-2 select-none pointer-events-none" aria-hidden>
                   {topFixes.map((fix, i) => (
-                    <div key={i} className="flex gap-3" data-testid="fix-locked">
-                      <span className="text-xs font-bold text-[var(--primary)] mt-0.5 shrink-0">
-                        0{i + 1}
-                      </span>
-                      <div>
-                        <p className="font-semibold text-[var(--foreground)] mb-0.5">{fix.title}</p>
-                        <p className="text-sm text-[var(--foreground-secondary)]">{fix.detail}</p>
+                    <div
+                      key={i}
+                      className="flex items-center justify-between px-5 py-4 rounded-xl border border-[var(--border)] bg-[var(--background)] blur-sm opacity-40"
+                      data-testid="fix-locked"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <span className="text-xs font-bold text-[var(--primary)] shrink-0">0{i + 1}</span>
+                        <span className="text-sm font-medium text-[var(--foreground)] truncate">{fix.title}</span>
                       </div>
+                      <Lock className="w-3.5 h-3.5 text-[var(--foreground-muted)] shrink-0 ml-3" />
                     </div>
                   ))}
                 </div>
 
-                {/* Unlock overlay */}
+                {/* Floating unlock card */}
                 <div
-                  className="absolute inset-0 flex flex-col items-center justify-center"
-                  style={{ background: 'linear-gradient(to bottom, transparent 0%, var(--background) 30%)' }}
+                  className="absolute inset-x-0 bottom-0 flex justify-center pb-2"
                   data-testid="fixes-blur-overlay"
                 >
-                  <div className="mt-8 flex flex-col items-center gap-3 text-center px-6">
-                    <div className="w-10 h-10 rounded-full bg-[var(--primary)]/10 flex items-center justify-center">
-                      <Lock className="w-5 h-5 text-[var(--primary)]" />
+                  <div className="w-full max-w-sm rounded-2xl border border-[var(--border)] bg-[var(--background)] shadow-xl p-8 text-center">
+                    <div className="w-12 h-12 rounded-full bg-[var(--primary)]/10 flex items-center justify-center mx-auto mb-4">
+                      <Lock className="w-6 h-6 text-[var(--primary)]" />
                     </div>
-                    <p className="font-semibold text-[var(--foreground)]">
-                      Xem toàn bộ lỗi và cách sửa
+                    <p className="font-semibold text-[var(--foreground)] mb-2">
+                      Xem chi tiết từng lỗi
                     </p>
-                    <p className="text-sm text-[var(--foreground-secondary)] max-w-xs">
-                      {topFixes.length} lỗi đã tìm thấy. Mở khóa để xem chi tiết và gợi ý sửa sẵn dán.
+                    <p className="text-sm text-[var(--foreground-secondary)] mb-6 leading-relaxed">
+                      {topFixes.length} lỗi đã tìm thấy. Mở khoá để xem chi tiết và gợi ý sửa sẵn dán.
                     </p>
                     <Button
                       onClick={() => onTabChange?.('rewrite')}
-                      className="gap-2 mt-1"
+                      className="w-full gap-2"
                       data-testid="cta-rewrite"
                     >
-                      Mở khóa tất cả {topFixes.length} lỗi
+                      Mở khoá tất cả {topFixes.length} lỗi
                       <ChevronRight className="w-4 h-4" />
                     </Button>
                   </div>
                 </div>
               </div>
-            </Card>
+            </div>
           )}
         </>
       ) : (
@@ -252,7 +253,7 @@ export default function ATSTab({ resume, onTabChange }) {
           {/* Score card with full category bars */}
           <Card>
             <div className="flex flex-col sm:flex-row gap-8 items-center">
-              <div className="flex flex-col items-center gap-1 shrink-0">
+              <div className="shrink-0">
                 <ScoreCircle score={overall} />
               </div>
               <div className="flex-1 w-full space-y-3">
@@ -268,28 +269,35 @@ export default function ATSTab({ resume, onTabChange }) {
 
           {/* Top Fixes — all visible */}
           {topFixes.length > 0 && (
-            <Card data-testid="top-fixes">
-              <p className="text-xs font-semibold tracking-widest text-[var(--foreground-muted)] uppercase mb-4">
+            <div data-testid="top-fixes">
+              <p className="text-[10px] font-bold tracking-[0.25em] text-[var(--foreground-muted)] uppercase mb-3 px-1">
                 Phần mềm ATS phát hiện
               </p>
-              <div className="space-y-5">
+              <div className="space-y-2">
                 {topFixes.map((fix, i) => (
-                  <div key={i} className="flex gap-3" data-testid="fix-visible">
-                    <span className="text-xs font-bold text-[var(--primary)] mt-0.5 shrink-0">
-                      0{i + 1}
-                    </span>
-                    <div>
-                      <p className="font-semibold text-[var(--foreground)] mb-0.5">{fix.title}</p>
-                      <p className="text-sm text-[var(--foreground-secondary)]">{fix.detail}</p>
+                  <div
+                    key={i}
+                    className="px-5 py-4 rounded-xl border border-[var(--border)] bg-[var(--background)]"
+                    data-testid="fix-visible"
+                  >
+                    <div className="flex items-start gap-3">
+                      <span className="text-xs font-bold text-[var(--primary)] mt-0.5 shrink-0">0{i + 1}</span>
+                      <div>
+                        <p className="font-semibold text-[var(--foreground)] mb-0.5">{fix.title}</p>
+                        <p className="text-sm text-[var(--foreground-secondary)]">{fix.detail}</p>
+                      </div>
                     </div>
                   </div>
                 ))}
               </div>
-            </Card>
+            </div>
           )}
 
-          {/* CTA for unlocked users */}
-          <Card className="bg-gradient-to-r from-[var(--primary)]/5 to-[var(--primary)]/10 border-[var(--primary)]/20" data-testid="cta-unlocked">
+          {/* CTA */}
+          <Card
+            className="bg-gradient-to-r from-[var(--primary)]/5 to-[var(--primary)]/10 border-[var(--primary)]/20"
+            data-testid="cta-unlocked"
+          >
             <div className="flex items-center justify-between flex-wrap gap-3">
               <div>
                 <p className="font-semibold text-[var(--foreground)]">Sẵn sàng sửa những lỗi này?</p>
@@ -304,13 +312,13 @@ export default function ATSTab({ resume, onTabChange }) {
 
           {/* Working section */}
           {working.length > 0 && (
-            <div className="flex flex-wrap gap-3 pt-1" data-testid="working-section">
-              <span className="text-xs font-semibold tracking-widest text-[var(--foreground-muted)] uppercase self-center">
-                Working
+            <div className="flex flex-wrap gap-x-5 gap-y-2 pt-1" data-testid="working-section">
+              <span className="text-[10px] font-bold tracking-[0.25em] text-[var(--foreground-muted)] uppercase self-center w-full">
+                Điểm tốt
               </span>
               {working.map((w, i) => (
-                <span key={i} className="flex items-center gap-1.5 text-xs text-[var(--foreground-secondary)]">
-                  <CheckCircle className="w-3.5 h-3.5 text-[var(--success)]" />
+                <span key={i} className="flex items-center gap-1.5 text-sm text-[var(--foreground-secondary)]">
+                  <CheckCircle className="w-4 h-4 text-[var(--success)] shrink-0" />
                   {w}
                 </span>
               ))}
