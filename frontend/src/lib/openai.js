@@ -92,7 +92,7 @@ QUAN TRỌNG:
 - working: đúng 2 mục ngắn
 - Chỉ trả về JSON, không thêm text nào khác`,
 
-  analyzeResume: `Bạn là chuyên gia tuyển dụng và ATS (Applicant Tracking System). Phân tích CV và trả về JSON với cấu trúc:
+  analyzeResume: `Bạn là chuyên gia ATS. Phân tích CV và trả về JSON (mỗi string tối đa 15 từ):
 {
   "scores": {
     "overall": 0-100,
@@ -105,39 +105,34 @@ QUAN TRỌNG:
   },
   "fdiReadiness": {
     "englishQuality": "poor/fair/good/excellent",
-    "hasQuantifiedAchievements": true/false,
-    "formatIsAtsClean": true/false,
-    "hasFdiKeywords": true/false,
-    "summary": "Nhận xét ngắn về mức độ sẵn sàng apply FDI"
+    "hasQuantifiedAchievements": true,
+    "formatIsAtsClean": true,
+    "hasFdiKeywords": true,
+    "summary": "Tối đa 8 từ"
   },
-  "strengths": ["Điểm mạnh 1", "Điểm mạnh 2"],
-  "weaknesses": ["Điểm yếu 1", "Điểm yếu 2"],
-  "suggestions": ["Gợi ý cải thiện 1", "Gợi ý cải thiện 2"],
+  "strengths": ["Tối đa 6 từ", "Tối đa 6 từ"],
+  "weaknesses": ["Tối đa 6 từ", "Tối đa 6 từ"],
+  "suggestions": ["Tối đa 8 từ", "Tối đa 8 từ"],
   "keywords": {
-    "found": ["Từ khóa tìm thấy"],
-    "missing": ["Từ khóa còn thiếu"],
-    "recommended": ["Từ khóa nên thêm"]
+    "found": ["keyword1", "keyword2", "keyword3"],
+    "missing": ["keyword1", "keyword2", "keyword3"],
+    "recommended": ["keyword1", "keyword2"]
   },
   "topFixes": [
-    {
-      "title": "Tiêu đề ngắn gọn (3-5 từ)",
-      "detail": "Mô tả CỤ THỂ với số đếm thực tế — ví dụ: 'Chỉ 1/12 bullet points có số liệu định lượng. Thêm %, số người, thời gian tiết kiệm vào 11 bullet còn lại.' KHÔNG dùng lời chung chung.",
-      "priority": 1
-    }
+    { "title": "Tối đa 5 từ", "detail": "1 câu có số thực tế, tối đa 12 từ.", "priority": 1 },
+    { "title": "Tối đa 5 từ", "detail": "1 câu có số thực tế, tối đa 12 từ.", "priority": 2 },
+    { "title": "Tối đa 5 từ", "detail": "1 câu có số thực tế, tối đa 12 từ.", "priority": 3 }
   ],
-  "working": ["Điều CV làm tốt 1", "Điều CV làm tốt 2"],
+  "working": ["Tối đa 5 từ", "Tối đa 5 từ"],
   "atsIssues": [
-    {
-      "type": "format/content/keyword",
-      "severity": "low/medium/high",
-      "description": "Mô tả vấn đề",
-      "suggestion": "Cách khắc phục"
-    }
+    { "type": "content", "severity": "high", "description": "Mô tả lỗi cụ thể, tối đa 12 từ", "suggestion": "Cách sửa, tối đa 10 từ" },
+    { "type": "format", "severity": "medium", "description": "Tối đa 12 từ", "suggestion": "Tối đa 10 từ" },
+    { "type": "keyword", "severity": "high", "description": "Tối đa 12 từ", "suggestion": "Tối đa 10 từ" },
+    { "type": "content", "severity": "medium", "description": "Tối đa 12 từ", "suggestion": "Tối đa 10 từ" },
+    { "type": "format", "severity": "low", "description": "Tối đa 12 từ", "suggestion": "Tối đa 10 từ" }
   ]
 }
-
-fdiScore (0-100) được tính dựa trên: chất lượng tiếng Anh (30%), có số liệu định lượng (25%), format ATS-clean (25%), từ khóa ngành FDI (20%).
-QUAN TRỌNG: topFixes phải CỰC KỲ CỤ THỂ — đếm số bullet thực tế, số từ khóa thiếu, section nào thiếu. Trả về đúng 3 topFixes theo thứ tự ưu tiên. Đánh giá khách quan, chi tiết.`,
+QUAN TRỌNG: atsIssues trả về TẤT CẢ lỗi tìm thấy (5–8 mục), topFixes đúng 3 mục ưu tiên cao nhất có số cụ thể. Chỉ trả về JSON.`,
 
   rewriteContent: `Bạn là chuyên gia viết CV chuyên nghiệp. Viết lại CV thành văn bản hoàn chỉnh, chuyên nghiệp, sẵn sàng in ấn.
 

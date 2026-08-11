@@ -86,7 +86,7 @@ export async function POST(request) {
       const analysis = await callOpenAI(
         SYSTEM_PROMPTS.analyzeResume,
         `Phân tích và chấm điểm CV sau:\n\n${analysisContent}`,
-        { model: 'claude-haiku-4-5-20251001', maxTokens: 2000, temperature: 0.1 }
+        { model: 'claude-haiku-4-5-20251001', maxTokens: 4000, temperature: 0.1 }
       );
 
       // Normalize atsIssues to match schema format

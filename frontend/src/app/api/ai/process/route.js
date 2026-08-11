@@ -77,29 +77,34 @@ Trả về JSON với cấu trúc sau:
     "contentScore": 0-100,
     "formatScore": 0-100,
     "keywordScore": 0-100,
-    "readabilityScore": 0-100
+    "readabilityScore": 0-100,
+    "fdiScore": 0-100
   },
   "analysis": {
-    "strengths": ["Điểm mạnh 1", "Điểm mạnh 2"],
-    "weaknesses": ["Điểm yếu 1", "Điểm yếu 2"],
-    "suggestions": ["Gợi ý cải thiện 1", "Gợi ý cải thiện 2"],
+    "strengths": ["Tối đa 8 từ", "Tối đa 8 từ"],
+    "weaknesses": ["Tối đa 8 từ", "Tối đa 8 từ"],
+    "suggestions": ["Tối đa 10 từ", "Tối đa 10 từ"],
     "keywords": {
-      "found": ["Từ khóa tìm thấy"],
-      "missing": ["Từ khóa còn thiếu"],
-      "recommended": ["Từ khóa nên thêm"]
+      "found": ["keyword1", "keyword2"],
+      "missing": ["keyword1", "keyword2"],
+      "recommended": ["keyword1", "keyword2"]
     },
+    "topFixes": [
+      { "title": "Tối đa 5 từ", "detail": "1 câu có số thực tế, tối đa 12 từ.", "priority": 1 },
+      { "title": "Tối đa 5 từ", "detail": "1 câu có số thực tế, tối đa 12 từ.", "priority": 2 },
+      { "title": "Tối đa 5 từ", "detail": "1 câu có số thực tế, tối đa 12 từ.", "priority": 3 }
+    ],
+    "working": ["Tối đa 5 từ", "Tối đa 5 từ"],
     "atsIssues": [
-      {
-        "type": "format/content/keyword",
-        "severity": "low/medium/high",
-        "description": "Mô tả vấn đề",
-        "suggestion": "Cách khắc phục"
-      }
+      { "type": "content", "severity": "high", "description": "Mô tả lỗi cụ thể, tối đa 12 từ", "suggestion": "Cách sửa, tối đa 10 từ" },
+      { "type": "format", "severity": "medium", "description": "Tối đa 12 từ", "suggestion": "Tối đa 10 từ" },
+      { "type": "keyword", "severity": "high", "description": "Tối đa 12 từ", "suggestion": "Tối đa 10 từ" },
+      { "type": "content", "severity": "medium", "description": "Tối đa 12 từ", "suggestion": "Tối đa 10 từ" },
+      { "type": "format", "severity": "low", "description": "Tối đa 12 từ", "suggestion": "Tối đa 10 từ" }
     ]
   }
 }
-
-Chỉ trả về JSON, không có text khác. Đánh giá khách quan và chi tiết.`;
+QUAN TRỌNG: atsIssues trả về TẤT CẢ lỗi tìm thấy (5–8 mục), topFixes đúng 3 mục ưu tiên cao nhất. Chỉ trả về JSON.`;
 
 export async function POST(request) {
   try {
@@ -203,6 +208,7 @@ export async function POST(request) {
         formatScore: Number(scoresData.formatScore) || 0,
         keywordScore: Number(scoresData.keywordScore) || 0,
         readabilityScore: Number(scoresData.readabilityScore) || 0,
+        fdiScore: Number(scoresData.fdiScore) || 0,
       };
 
       // Validate scores

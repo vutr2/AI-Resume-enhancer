@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { Shield, RotateCcw, ChevronRight, CheckCircle, Lock, Loader2 } from 'lucide-react';
+import Link from 'next/link';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import { useResumeStore } from '@/store/useResumeStore';
@@ -99,14 +100,16 @@ export default function ATSTab({ resume, onTabChange }) {
     else toast.error(result.error || 'Lỗi khi phân tích ATS');
   };
 
-  // Auto-trigger when resume exists but scores or topFixes are missing
+  // Auto-trigger: fire when scores/topFixes missing, or when unlocked but atsIssues not yet loaded
   useEffect(() => {
-    const needsAnalysis = !scores || !analysis?.topFixes?.length;
+    const resolvedFixes  = analysis?.topFixes?.length  ? analysis.topFixes  : (resume?.analysis?.topFixes  || []);
+    const resolvedIssues = analysis?.atsIssues?.length ? analysis.atsIssues : (resume?.analysis?.atsIssues || []);
+    const needsAnalysis  = !scores || !resolvedFixes.length || (unlocked && !resolvedIssues.length);
     if (resume?._id && needsAnalysis && !isAnalyzing) {
       handleAnalyze(false);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [resume?._id]);
+  }, [resume?._id, unlocked]);
 
   if (!resume) {
     return (
@@ -237,19 +240,17 @@ export default function ATSTab({ resume, onTabChange }) {
                   <Lock className="w-6 h-6 text-[var(--primary)]" />
                 </div>
                 <p className="font-semibold text-[var(--foreground)] mb-2">
-                  Xem chi tiết từng lỗi
+                  Muốn xem kĩ từng lỗi?
                 </p>
                 <p className="text-sm text-[var(--foreground-secondary)] mb-5 leading-relaxed">
-                  {topFixes.length} lỗi đã tìm thấy. Mở khoá để xem chi tiết và gợi ý sửa sẵn dán.
+                  {topFixes.length} lỗi đã được phát hiện. Mua lượt mở khoá để xem chi tiết và để AI sửa CV cho bạn.
                 </p>
-                <Button
-                  onClick={() => onTabChange?.('rewrite')}
-                  className="w-full gap-2"
-                  data-testid="cta-rewrite"
-                >
-                  Mở khoá tất cả {topFixes.length} lỗi
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
+                <Link href="/payment" className="block" data-testid="cta-rewrite">
+                  <Button className="w-full gap-2">
+                    Mở khoá tất cả {topFixes.length} lỗi
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
+                </Link>
               </div>
             </div>
           )}
@@ -274,41 +275,98 @@ export default function ATSTab({ resume, onTabChange }) {
             </div>
           </Card>
 
-          {/* Top Fixes — all visible */}
-          {topFixes.length > 0 && (
-            <div data-testid="top-fixes">
-              <p className="text-[10px] font-bold tracking-[0.25em] text-[var(--foreground-muted)] uppercase mb-3 px-1">
-                Phần mềm ATS phát hiện
-              </p>
-              <div className="space-y-2">
-                {topFixes.map((fix, i) => (
-                  <div
-                    key={i}
-                    className="px-5 py-4 rounded-xl border border-[var(--border)] bg-[var(--background)]"
-                    data-testid="fix-visible"
-                  >
-                    <div className="flex items-start gap-3">
-                      <span className="text-xs font-bold text-[var(--primary)] mt-0.5 shrink-0">0{i + 1}</span>
-                      <div>
-                        <p className="font-semibold text-[var(--foreground)] mb-0.5">{fix.title}</p>
-                        <p className="text-sm text-[var(--foreground-secondary)]">{fix.detail}</p>
+          {/* All ATS issues — full list after unlock */}
+          {(() => {
+            const allIssues = analysis?.atsIssues?.length
+              ? analysis.atsIssues
+              : resume?.analysis?.atsIssues || [];
+            if (!allIssues.length) return null;
+
+            const severityConfig = {
+              high:   { label: 'Nghiêm trọng', color: '#ef4444', bg: '#fef2f2' },
+              medium: { label: 'Cần sửa',      color: '#f59e0b', bg: '#fffbeb' },
+              low:    { label: 'Cải thiện',    color: '#3b82f6', bg: '#eff6ff' },
+            };
+
+            return (
+              <div data-testid="top-fixes">
+                <p className="text-[10px] font-bold tracking-[0.25em] text-[var(--foreground-muted)] uppercase mb-3 px-1">
+                  Tất cả lỗi tìm thấy ({allIssues.length})
+                </p>
+                <div className="space-y-3">
+                  {allIssues.map((issue, i) => {
+                    const sev = severityConfig[issue.severity] || severityConfig.medium;
+                    return (
+                      <div
+                        key={i}
+                        className="rounded-xl border border-[var(--border)] bg-[var(--background)] overflow-hidden"
+                        data-testid="fix-visible"
+                      >
+                        <div className="flex items-start gap-3 px-5 pt-4 pb-3">
+                          <span className="text-xs font-bold mt-0.5 shrink-0 w-5 tabular-nums" style={{ color: sev.color }}>
+                            {String(i + 1).padStart(2, '0')}
+                          </span>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span
+                                className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                                style={{ color: sev.color, backgroundColor: sev.bg }}
+                              >
+                                {sev.label}
+                              </span>
+                            </div>
+                            <p className="font-semibold text-[var(--foreground)] mb-1">{issue.description}</p>
+                            {issue.suggestion && (
+                              <p className="text-sm text-[var(--foreground-secondary)] leading-relaxed">
+                                → {issue.suggestion}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        <div className="px-5 pb-4 flex justify-end">
+                          <button
+                            onClick={() => onTabChange?.('rewrite')}
+                            className="text-xs font-semibold text-[var(--primary)] hover:underline flex items-center gap-1"
+                          >
+                            Để AI sửa <ChevronRight className="w-3 h-3" />
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* Missing keywords */}
+          {(analysis?.keywords?.missing || resume?.analysis?.keywords?.missing)?.length > 0 && (
+            <div>
+              <p className="text-[10px] font-bold tracking-[0.25em] text-[var(--foreground-muted)] uppercase mb-3 px-1">
+                Từ khóa ATS còn thiếu
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {(analysis?.keywords?.missing || resume?.analysis?.keywords?.missing).map((kw, i) => (
+                  <span
+                    key={i}
+                    className="px-3 py-1 rounded-full text-xs font-medium border border-[var(--border)] text-[var(--foreground-secondary)] bg-[var(--background)]"
+                  >
+                    {kw}
+                  </span>
                 ))}
               </div>
             </div>
           )}
 
-          {/* CTA */}
+          {/* Big rewrite CTA */}
           <Card
             className="bg-gradient-to-r from-[var(--primary)]/5 to-[var(--primary)]/10 border-[var(--primary)]/20"
             data-testid="cta-unlocked"
           >
             <div className="flex items-center justify-between flex-wrap gap-3">
               <div>
-                <p className="font-semibold text-[var(--foreground)]">Sẵn sàng sửa những lỗi này?</p>
-                <p className="text-sm text-[var(--foreground-secondary)]">AI sẽ viết lại CV của bạn để đạt 80+ điểm</p>
+                <p className="font-semibold text-[var(--foreground)]">Để AI sửa hết cho bạn?</p>
+                <p className="text-sm text-[var(--foreground-secondary)]">AI viết lại CV theo chuẩn ATS, nhắm thẳng điểm 80+</p>
               </div>
               <Button onClick={() => onTabChange?.('rewrite')} className="gap-2 shrink-0" data-testid="cta-rewrite-unlocked">
                 Viết lại CV ngay
