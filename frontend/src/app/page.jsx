@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import ResumeScoreWidget from '@/components/landing/ResumeScoreWidget';
 import DauViecLogo from '@/components/ui/DauViecLogo';
 import {
   ArrowRight, FileText, Target, CheckCircle, Sparkles, Shield,
@@ -201,7 +200,7 @@ export default function HomePage() {
             </Link>
 
             <div className="hidden md:flex items-center gap-6 text-sm font-medium text-[var(--foreground-secondary)]">
-              <a href="#score" className="hover:text-[var(--primary)] transition-colors">Kiểm tra ATS</a>
+              <a href="/kiem-tra-ats" className="hover:text-[var(--primary)] transition-colors">Kiểm tra ATS</a>
               <a href="#features" className="hover:text-[var(--primary)] transition-colors">Tính năng</a>
               <Link href="/pricing" className="hover:text-[var(--primary)] transition-colors">Bảng giá</Link>
             </div>
@@ -245,7 +244,7 @@ export default function HomePage() {
                   Bắt đầu miễn phí
                   <ArrowRight className="w-5 h-5" />
                 </Link>
-                <a href="#score" className="btn btn-secondary text-base px-6 py-3">
+                <a href="/kiem-tra-ats" className="btn btn-secondary text-base px-6 py-3">
                   Kiểm tra ATS ngay
                 </a>
               </div>
@@ -289,24 +288,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── Free ATS Score Widget ───────────────────────────────────── */}
-      <section id="score" className="py-16 px-4 bg-[var(--background-secondary)] border-y border-[var(--border)]">
-        <div className="container mx-auto max-w-3xl">
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-[var(--border)] text-[var(--accent)] text-xs font-semibold mb-4">
-              <Zap className="w-3.5 h-3.5" />
-              Miễn phí — không cần đăng ký
-            </div>
-            <h2 className="text-2xl md:text-3xl font-bold text-[var(--foreground)] mb-3">
-              Điểm ATS CV của bạn là bao nhiêu?
-            </h2>
-            <p className="text-[var(--foreground-secondary)]">
-              Upload CV và xem ngay điểm ATS + mức độ sẵn sàng cho FDI. Chỉ mất 20 giây.
-            </p>
-          </div>
-          <ResumeScoreWidget />
-        </div>
-      </section>
 
       {/* ── How it works ───────────────────────────────────────────── */}
       <section className="py-20 px-4">

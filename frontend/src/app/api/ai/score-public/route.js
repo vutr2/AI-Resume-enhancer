@@ -84,7 +84,7 @@ export async function POST(request) {
       }
     }
 
-    rawText = rawText.substring(0, 50000);
+    rawText = rawText.substring(0, 8000);
 
     if (!rawText || rawText.trim().length < 20) {
       return NextResponse.json(
@@ -95,7 +95,8 @@ export async function POST(request) {
 
     const analysis = await callOpenAI(
       SYSTEM_PROMPTS.analyzeResume,
-      `Phân tích và chấm điểm CV sau:\n\nCV Content:\n${rawText}`
+      `Phân tích và chấm điểm CV sau:\n\nCV Content:\n${rawText}`,
+      { model: 'claude-haiku-4-5-20251001', maxTokens: 600, temperature: 0.1 }
     );
 
     const scoresData = analysis.scores || analysis;

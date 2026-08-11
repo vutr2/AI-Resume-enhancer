@@ -156,7 +156,7 @@ export default function ResumeScoreWidget() {
       <div data-testid="score-widget" className="rounded-xl border border-[var(--border)] p-10 text-center">
         <Loader2 className="w-10 h-10 text-[var(--primary)] mx-auto mb-3 animate-spin" />
         <p className="font-semibold text-[var(--foreground)]">Đang phân tích CV...</p>
-        <p className="text-sm text-[var(--foreground-muted)] mt-1">AI đang chấm điểm, mất khoảng 10-20 giây</p>
+        <p className="text-sm text-[var(--foreground-muted)] mt-1">AI đang chấm điểm, mất khoảng 5-10 giây</p>
       </div>
     );
   }
