@@ -181,8 +181,8 @@ export async function POST(request) {
     console.log('Processing CV with content length:', resume.rawText.length, 'chars');
 
     try {
-      // Build prompt content
-      let content = `Phân tích và đánh giá CV sau:\n\n${resume.rawText}`;
+      // Build prompt content — cap rawText to avoid excess tokens
+      let content = `Phân tích và đánh giá CV sau:\n\n${resume.rawText.substring(0, 12000)}`;
       if (jobDescription) {
         content += `\n\nMô tả công việc đang ứng tuyển:\n${jobDescription}`;
       }
@@ -192,7 +192,7 @@ export async function POST(request) {
         resume.rawText,
         'process',
         jobDescription || '',
-        () => callOpenAI(COMBINED_PROMPT, content, { maxTokens: 6000 })
+        () => callOpenAI(COMBINED_PROMPT, content, { maxTokens: 3000, temperature: 0.1 })
       );
 
       console.log('AI Process result received');

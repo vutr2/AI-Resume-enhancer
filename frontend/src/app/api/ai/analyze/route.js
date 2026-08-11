@@ -74,14 +74,12 @@ export async function POST(request) {
       );
     }
 
-    // Build analysis content
-    let analysisContent = `CV Content:\n${resume.rawText}\n\n`;
-    if (resume.parsedData) {
-      analysisContent += `Parsed Data:\n${JSON.stringify(resume.parsedData, null, 2)}\n\n`;
-    }
+    // Build analysis content — rawText only, no parsedData JSON to keep tokens low
+    const rawTextCapped = resume.rawText.substring(0, 12000);
+    let analysisContent = rawTextCapped;
     if (jobDescription) {
       const trimmedJD = typeof jobDescription === 'string' ? jobDescription.slice(0, MAX_JOB_DESC_LENGTH) : '';
-      analysisContent += `Job Description:\n${trimmedJD}\n\n`;
+      analysisContent += `\n\nJob Description:\n${trimmedJD}`;
     }
 
     try {
@@ -90,7 +88,11 @@ export async function POST(request) {
         analysisContent,
         'analyze',
         null,
-        () => callOpenAI(SYSTEM_PROMPTS.analyzeResume, `Phân tích và chấm điểm CV sau:\n\n${analysisContent}`)
+        () => callOpenAI(
+          SYSTEM_PROMPTS.analyzeResume,
+          `Phân tích và chấm điểm CV sau:\n\n${analysisContent}`,
+          { model: 'claude-haiku-4-5-20251001', maxTokens: 2000, temperature: 0.1 }
+        )
       );
 
       // Normalize atsIssues to match schema format
