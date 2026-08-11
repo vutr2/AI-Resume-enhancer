@@ -62,6 +62,9 @@ export async function POST(request) {
       if (pkg.credits > 0) {
         $inc.paidCredits = pkg.credits;
       }
+      if ((pkg.freeCreditsBonus || 0) > 0) {
+        $inc.freeCredits = pkg.freeCreditsBonus;
+      }
       if (pkg.passDays > 0) {
         const passEnd = new Date(now);
         passEnd.setDate(passEnd.getDate() + pkg.passDays);

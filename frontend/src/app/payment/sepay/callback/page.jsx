@@ -119,9 +119,9 @@ function CallbackContent() {
         <div className="space-y-3">
           {status === 'success' && profileReady && (
             <>
-              <Button onClick={() => router.push('/dashboard')} className="w-full" size="lg">
+              <Button onClick={() => router.push('/dashboard?tab=ats')} className="w-full" size="lg">
                 <FileText className="w-5 h-5 mr-2" />
-                Bắt đầu sử dụng
+                Xem kết quả ATS ngay
               </Button>
 
               {/* Manual retry in case something went wrong */}

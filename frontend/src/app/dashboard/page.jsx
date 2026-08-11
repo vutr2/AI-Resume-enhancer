@@ -21,20 +21,28 @@ function DashboardPageContent() {
   const { currentResume, scores, isUploading, uploadResume, error, resumes } =
     useResumeStore();
 
-  // Check for payment status in URL
+  // Check for payment status and tab in URL
   useEffect(() => {
     const paymentStatus = searchParams.get('payment');
+    const tabParam = searchParams.get('tab');
+
     if (paymentStatus === 'failed') {
       toast.error(
         'Thanh toán không thành công. Bạn có thể thử lại sau hoặc chọn gói khác.'
       );
-      // Clean URL without reload
-      window.history.replaceState({}, '', '/dashboard');
     } else if (paymentStatus === 'success') {
       toast.success('Thanh toán thành công! Gói dịch vụ đã được kích hoạt.');
+    }
+
+    if (tabParam) {
+      setActiveTab(tabParam);
+    }
+
+    // Clean URL without reload
+    if (paymentStatus || tabParam) {
       window.history.replaceState({}, '', '/dashboard');
     }
-  }, [searchParams]);
+  }, [searchParams, setActiveTab]);
 
   const handleUpload = async (file) => {
     const result = await uploadResume(file);
