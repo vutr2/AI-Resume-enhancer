@@ -86,8 +86,9 @@ export default function ATSTab({ resume, onTabChange }) {
   const { hasFullAccess } = useAuthStore();
 
   const unlocked = hasFullAccess(resume?._id);
-  const topFixes = analysis?.topFixes || [];
-  const working   = analysis?.working   || [];
+  // Fallback to resume prop's analysis when store's analysis state is null (e.g. after page reload)
+  const topFixes = analysis?.topFixes?.length ? analysis.topFixes : (resume?.analysis?.topFixes || []);
+  const working   = analysis?.working?.length  ? analysis.working  : (resume?.analysis?.working  || []);
 
   const handleAnalyze = async (force = false) => {
     if (!resume?._id) return;
