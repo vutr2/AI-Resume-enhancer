@@ -51,8 +51,8 @@ export async function POST(request) {
       );
     }
 
-    // Return cached MongoDB result if already analyzed and not forcing re-analysis
-    if (!force && resume.status === 'analyzed' && resume.scores?.overall > 0) {
+    // Return cached MongoDB result only if topFixes is already populated
+    if (!force && resume.status === 'analyzed' && resume.scores?.overall > 0 && resume.analysis?.topFixes?.length > 0) {
       return NextResponse.json(
         {
           success: true,

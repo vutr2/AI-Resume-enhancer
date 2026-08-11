@@ -69,17 +69,14 @@ function CategoryBar({ label, score }) {
   );
 }
 
-function CategoryRowLocked({ label, score }) {
+function CategoryRowLocked({ label }) {
   return (
     <div
       className="flex items-center justify-between px-5 py-4 border-b border-[var(--border)] last:border-0"
       data-testid="category-bar"
     >
       <span className="text-sm text-[var(--foreground)]">{label}</span>
-      <div className="flex items-center gap-2.5">
-        <span className="text-sm font-semibold tabular-nums text-[var(--foreground)]">{score}</span>
-        <Lock className="w-3.5 h-3.5 text-[var(--foreground-muted)]" />
-      </div>
+      <Lock className="w-3.5 h-3.5 text-[var(--foreground-muted)]" />
     </div>
   );
 }
@@ -101,9 +98,10 @@ export default function ATSTab({ resume, onTabChange }) {
     else toast.error(result.error || 'Lỗi khi phân tích ATS');
   };
 
-  // Auto-trigger when resume exists but has no scores yet
+  // Auto-trigger when resume exists but scores or topFixes are missing
   useEffect(() => {
-    if (resume?._id && !scores && !isAnalyzing) {
+    const needsAnalysis = !scores || !analysis?.topFixes?.length;
+    if (resume?._id && needsAnalysis && !isAnalyzing) {
       handleAnalyze(false);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -189,7 +187,7 @@ export default function ATSTab({ resume, onTabChange }) {
           {/* Category list — locked rows, no inner padding (rows handle their own) */}
           <div className="rounded-xl border border-[var(--border)] overflow-hidden bg-[var(--background)]">
             {CATEGORIES.map((c) => (
-              <CategoryRowLocked key={c.key} label={c.label} score={scores[c.key] || 0} />
+              <CategoryRowLocked key={c.key} label={c.label} />
             ))}
           </div>
 
