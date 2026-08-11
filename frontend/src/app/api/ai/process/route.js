@@ -7,86 +7,50 @@ import { getUserAccess, consumeFreeCredit } from '@/lib/access';
 import { rateLimitMiddleware } from '@/lib/rateLimit';
 
 // Combined system prompt for both parsing AND analyzing in one call
-const COMBINED_PROMPT = `Bạn là chuyên gia phân tích CV và ATS (Applicant Tracking System).
-Nhiệm vụ của bạn là:
-1. Trích xuất thông tin từ CV
-2. Đánh giá và chấm điểm CV
+const COMBINED_PROMPT = `Bạn là chuyên gia phân tích CV và ATS. Trích xuất thông tin + chấm điểm CV, trả về JSON ngắn gọn:
 
-Trả về JSON với cấu trúc sau:
+GIỚI HẠN ĐỘ DÀI (bắt buộc tuân thủ để tránh cắt JSON):
+- description/summary: tối đa 15 từ
+- achievements mỗi mục: tối đa 12 từ, tối đa 3 mục/job
+- skills: tối đa 8 kỹ năng mỗi loại
+- analysis strings: tối đa 12 từ
+- atsIssues description/suggestion: tối đa 12 từ
+
 {
   "parsedData": {
-    "personalInfo": {
-      "name": "Họ tên đầy đủ",
-      "email": "email@example.com",
-      "phone": "Số điện thoại",
-      "address": "Địa chỉ",
-      "linkedin": "LinkedIn URL",
-      "github": "GitHub URL",
-      "website": "Website cá nhân"
-    },
-    "summary": "Tóm tắt bản thân",
+    "personalInfo": { "name": "", "email": "", "phone": "", "address": "", "linkedin": "", "github": "", "website": "" },
+    "summary": "Tối đa 15 từ",
     "experience": [
-      {
-        "company": "Tên công ty",
-        "position": "Vị trí",
-        "location": "Địa điểm",
-        "startDate": "MM/YYYY",
-        "endDate": "MM/YYYY hoặc Hiện tại",
-        "current": true/false,
-        "description": "Mô tả công việc",
-        "achievements": ["Thành tích 1", "Thành tích 2"]
-      }
+      { "company": "", "position": "", "location": "", "startDate": "MM/YYYY", "endDate": "MM/YYYY", "current": false, "description": "Tối đa 12 từ", "achievements": ["Tối đa 12 từ"] }
     ],
     "education": [
-      {
-        "institution": "Tên trường",
-        "degree": "Bằng cấp",
-        "field": "Ngành học",
-        "startDate": "YYYY",
-        "endDate": "YYYY",
-        "gpa": "Điểm GPA",
-        "achievements": ["Thành tích học tập"]
-      }
+      { "institution": "", "degree": "", "field": "", "startDate": "YYYY", "endDate": "YYYY", "gpa": "", "achievements": [] }
     ],
     "skills": {
-      "technical": ["Kỹ năng chuyên môn"],
-      "soft": ["Kỹ năng mềm"],
-      "languages": [{"name": "Tiếng Anh", "level": "Thành thạo"}],
-      "certifications": [{"name": "Chứng chỉ", "issuer": "Đơn vị cấp", "date": "YYYY"}]
+      "technical": ["skill1", "skill2"],
+      "soft": ["skill1", "skill2"],
+      "languages": [{ "name": "", "level": "" }],
+      "certifications": [{ "name": "", "issuer": "", "date": "" }]
     },
-    "projects": [
-      {
-        "name": "Tên dự án",
-        "description": "Mô tả",
-        "technologies": ["Tech 1", "Tech 2"],
-        "url": "URL"
-      }
-    ],
-    "awards": [
-      {
-        "title": "Giải thưởng",
-        "issuer": "Đơn vị trao",
-        "date": "YYYY",
-        "description": "Mô tả"
-      }
-    ]
+    "projects": [{ "name": "", "description": "Tối đa 10 từ", "technologies": [], "url": "" }],
+    "awards": [{ "title": "", "issuer": "", "date": "", "description": "Tối đa 10 từ" }]
   },
   "scores": {
-    "overall": 0-100,
-    "atsScore": 0-100,
-    "contentScore": 0-100,
-    "formatScore": 0-100,
-    "keywordScore": 0-100,
-    "readabilityScore": 0-100,
-    "fdiScore": 0-100
+    "overall": 0,
+    "atsScore": 0,
+    "contentScore": 0,
+    "formatScore": 0,
+    "keywordScore": 0,
+    "readabilityScore": 0,
+    "fdiScore": 0
   },
   "analysis": {
     "strengths": ["Tối đa 8 từ", "Tối đa 8 từ"],
     "weaknesses": ["Tối đa 8 từ", "Tối đa 8 từ"],
     "suggestions": ["Tối đa 10 từ", "Tối đa 10 từ"],
     "keywords": {
-      "found": ["keyword1", "keyword2"],
-      "missing": ["keyword1", "keyword2"],
+      "found": ["keyword1", "keyword2", "keyword3"],
+      "missing": ["keyword1", "keyword2", "keyword3"],
       "recommended": ["keyword1", "keyword2"]
     },
     "topFixes": [
@@ -96,15 +60,15 @@ Trả về JSON với cấu trúc sau:
     ],
     "working": ["Tối đa 5 từ", "Tối đa 5 từ"],
     "atsIssues": [
-      { "type": "content", "severity": "high", "description": "Mô tả lỗi cụ thể, tối đa 12 từ", "suggestion": "Cách sửa, tối đa 10 từ" },
-      { "type": "format", "severity": "medium", "description": "Tối đa 12 từ", "suggestion": "Tối đa 10 từ" },
-      { "type": "keyword", "severity": "high", "description": "Tối đa 12 từ", "suggestion": "Tối đa 10 từ" },
-      { "type": "content", "severity": "medium", "description": "Tối đa 12 từ", "suggestion": "Tối đa 10 từ" },
-      { "type": "format", "severity": "low", "description": "Tối đa 12 từ", "suggestion": "Tối đa 10 từ" }
+      { "type": "content|format|keyword", "severity": "high|medium|low", "description": "Lỗi cụ thể từ CV này, tối đa 12 từ", "suggestion": "Cách sửa ngắn gọn, tối đa 10 từ" }
     ]
   }
 }
-QUAN TRỌNG: atsIssues trả về TẤT CẢ lỗi tìm thấy (5–8 mục), topFixes đúng 3 mục ưu tiên cao nhất. Chỉ trả về JSON.`;
+
+QUAN TRỌNG:
+- atsIssues: liệt kê TẤT CẢ lỗi thực tế của CV này (5–8 mục), type là "content"/"format"/"keyword", severity là "high"/"medium"/"low"
+- topFixes: đúng 3 mục quan trọng nhất, detail phải có số cụ thể (ví dụ "4/10 bullet thiếu số liệu")
+- Chỉ trả về JSON, không text thêm`;
 
 export async function POST(request) {
   try {
