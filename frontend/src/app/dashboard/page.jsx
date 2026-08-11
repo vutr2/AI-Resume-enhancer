@@ -4,7 +4,6 @@ import { Suspense, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import ResumeUploader from '@/components/resume/ResumeUploader';
 import ResumePreview from '@/components/resume/ResumePreview';
-import ScoreOverview from '@/components/resume/ScoreOverview';
 import RewriteTab from './tabs/RewriteTab';
 import JobMatchTab from './tabs/JobMatchTab';
 import ATSTab from './tabs/ATSTab';
@@ -40,7 +39,7 @@ function DashboardPageContent() {
   const handleUpload = async (file) => {
     const result = await uploadResume(file);
     if (result.success) {
-      setActiveTab('review');
+      setActiveTab('ats');
     }
   };
 
@@ -101,27 +100,28 @@ function DashboardPageContent() {
       case 'review':
         return (
           <div className="flex flex-col h-full">
-            {/* Header */}
-            <div className="mb-4">
-              <h1 className="text-2xl font-bold text-[var(--foreground)]">AI Resume Review</h1>
-              {currentResume && (
-                <p className="text-sm text-[var(--foreground-muted)] mt-0.5">
-                  {currentResume.originalName || currentResume.filename || 'Your Resume'}
-                </p>
-              )}
+            <div className="mb-4 flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-bold text-[var(--foreground)]">Xem CV</h1>
+                {currentResume && (
+                  <p className="text-sm text-[var(--foreground-muted)] mt-0.5">
+                    {currentResume.originalName || currentResume.filename || 'Your Resume'}
+                  </p>
+                )}
+              </div>
+              <button
+                onClick={() => setActiveTab('ats')}
+                className="text-sm font-medium text-[var(--primary)] hover:underline"
+              >
+                Xem điểm ATS →
+              </button>
             </div>
-            {/* Two-panel layout */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6" style={{ minHeight: '600px' }}>
-              <div className="overflow-hidden rounded-xl border border-[var(--border)]" style={{ maxHeight: '700px' }}>
-                <ResumePreview
-                  resumeId={currentResume?._id}
-                  resume={currentResume?.parsedData}
-                  fileHtml={currentResume?.fileHtml}
-                />
-              </div>
-              <div style={{ maxHeight: '700px' }}>
-                <ScoreOverview scores={scores} />
-              </div>
+            <div className="overflow-hidden rounded-xl border border-[var(--border)] flex-1" style={{ minHeight: '600px' }}>
+              <ResumePreview
+                resumeId={currentResume?._id}
+                resume={currentResume?.parsedData}
+                fileHtml={currentResume?.fileHtml}
+              />
             </div>
           </div>
         );

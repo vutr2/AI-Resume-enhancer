@@ -1,6 +1,7 @@
 'use client';
 
-import { Shield, RotateCcw, ChevronRight, CheckCircle, Lock } from 'lucide-react';
+import { useEffect } from 'react';
+import { Shield, RotateCcw, ChevronRight, CheckCircle, Lock, Loader2 } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import { useResumeStore } from '@/store/useResumeStore';
@@ -98,6 +99,14 @@ export default function ATSTab({ resume, onTabChange }) {
     else toast.error(result.error || 'Lỗi khi phân tích ATS');
   };
 
+  // Auto-trigger when resume exists but has no scores yet
+  useEffect(() => {
+    if (resume?._id && !scores && !isAnalyzing) {
+      handleAnalyze(false);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resume?._id]);
+
   if (!resume) {
     return (
       <Card className="text-center py-12">
@@ -106,19 +115,29 @@ export default function ATSTab({ resume, onTabChange }) {
     );
   }
 
-  /* ── Empty state ── */
+  /* ── Empty / loading state ── */
   if (!scores) {
     return (
-      <Card className="text-center py-12" data-testid="empty-state">
-        <Shield className="w-16 h-16 text-[var(--primary)] mx-auto mb-4" />
-        <h2 className="text-xl font-bold text-[var(--foreground)] mb-2">Kiểm tra tính tương thích ATS</h2>
-        <p className="text-[var(--foreground-secondary)] mb-6 max-w-md mx-auto">
-          Phân tích CV để phát hiện các vấn đề có thể làm giảm khả năng vượt qua hệ thống lọc tự động của FDI
-        </p>
-        <Button onClick={() => handleAnalyze(false)} loading={isAnalyzing} size="lg">
-          <Shield className="w-5 h-5 mr-2" />
-          Bắt đầu kiểm tra
-        </Button>
+      <Card className="text-center py-16" data-testid="empty-state">
+        {isAnalyzing ? (
+          <>
+            <Loader2 className="w-12 h-12 text-[var(--primary)] mx-auto mb-4 animate-spin" />
+            <p className="font-semibold text-[var(--foreground)] mb-1">Đang phân tích CV...</p>
+            <p className="text-sm text-[var(--foreground-muted)]">AI đang chấm điểm, mất khoảng 5–10 giây</p>
+          </>
+        ) : (
+          <>
+            <Shield className="w-16 h-16 text-[var(--primary)] mx-auto mb-4" />
+            <h2 className="text-xl font-bold text-[var(--foreground)] mb-2">Kiểm tra tính tương thích ATS</h2>
+            <p className="text-[var(--foreground-secondary)] mb-6 max-w-md mx-auto">
+              Phân tích CV để phát hiện các vấn đề có thể làm giảm khả năng vượt qua hệ thống lọc tự động của FDI
+            </p>
+            <Button onClick={() => handleAnalyze(false)} loading={isAnalyzing} size="lg">
+              <Shield className="w-5 h-5 mr-2" />
+              Bắt đầu kiểm tra
+            </Button>
+          </>
+        )}
       </Card>
     );
   }
