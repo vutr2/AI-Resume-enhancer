@@ -171,9 +171,13 @@ class MemoryCache {
 
   async _diskWrite(key, entry) {
     try {
-      await fs.writeFile(this._diskPath(key), JSON.stringify(entry), 'utf8');
-    } catch {
-      // Non-critical
+      const serialized = JSON.stringify(entry);
+      await fs.writeFile(this._diskPath(key), serialized, 'utf8');
+    } catch (err) {
+      // Non-critical — cyclic refs or disk errors are ignored
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('Cache disk write failed:', err?.message);
+      }
     }
   }
 

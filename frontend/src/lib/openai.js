@@ -237,11 +237,14 @@ export async function callOpenAI(systemPrompt, userContent, options = {}) {
     try {
       return JSON.parse(jsonMatch[0]);
     } catch (parseError) {
-      console.error('JSON parse error:', parseError, 'Content:', jsonMatch[0].substring(0, 500));
+      console.error('JSON parse error:', parseError?.message, 'Content:', jsonMatch[0].substring(0, 500));
       throw new Error('AI trả về JSON không hợp lệ');
     }
   } catch (error) {
-    console.error('Claude API error:', error);
-    throw error;
+    // Sanitize error — Anthropic SDK error objects can have cyclic references
+    const message = error?.message || String(error);
+    const status = error?.status ?? error?.statusCode ?? null;
+    console.error('Claude API error:', status ? `[${status}] ${message}` : message);
+    throw new Error(message);
   }
 }
