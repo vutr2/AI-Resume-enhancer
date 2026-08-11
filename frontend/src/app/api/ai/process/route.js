@@ -192,7 +192,7 @@ export async function POST(request) {
         resume.rawText,
         'process',
         jobDescription || '',
-        () => callOpenAI(COMBINED_PROMPT, content, { maxTokens: 3000, temperature: 0.1 })
+        () => callOpenAI(COMBINED_PROMPT, content, { model: 'claude-haiku-4-5-20251001', maxTokens: 5000, temperature: 0.1 })
       );
 
       console.log('AI Process result received');
