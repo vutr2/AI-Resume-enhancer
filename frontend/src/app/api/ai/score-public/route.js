@@ -116,14 +116,17 @@ export async function POST(request) {
       );
     }
 
-    // Return only 2 top fixes — detailed analysis is gated behind registration
-    // Sanitize to plain strings to avoid cyclic-structure serialization errors
-    const allSuggestions = analysis.suggestions || [];
-    const topFixes = allSuggestions.slice(0, 2).map((fix) =>
-      typeof fix === 'string'
-        ? fix
-        : String(fix?.suggestion || fix?.text || fix?.description || fix?.content || '')
-    ).filter(Boolean);
+    // Normalize topFixes — first fix always visible, rest gated
+    const rawFixes = analysis.topFixes || analysis.suggestions || [];
+    const topFixes = rawFixes.slice(0, 2).map((fix) => {
+      if (typeof fix === 'string') return { title: fix, detail: fix };
+      return {
+        title:  String(fix?.title  || fix?.suggestion || fix?.text || ''),
+        detail: String(fix?.detail || fix?.description || fix?.suggestion || fix?.text || ''),
+      };
+    }).filter((f) => f.title);
+
+    const working = (analysis.working || []).slice(0, 3).map(String);
 
     return NextResponse.json({
       success: true,
@@ -137,6 +140,7 @@ export async function POST(request) {
           fdiScore:     scores.fdiScore,
         },
         topFixes,
+        working,
       },
     });
   } catch (error) {

@@ -243,12 +243,24 @@ export async function POST(request) {
         });
       }
 
+      const rawFixes = analysisData.topFixes || [];
+      const topFixes = rawFixes.slice(0, 3).map((fix) => {
+        if (typeof fix === 'string') return { title: fix, detail: fix, priority: 1 };
+        return {
+          title:    String(fix?.title    || fix?.suggestion || ''),
+          detail:   String(fix?.detail   || fix?.description || fix?.suggestion || ''),
+          priority: Number(fix?.priority || 1),
+        };
+      }).filter((f) => f.title);
+
       const normalizedAnalysis = {
         strengths: analysisData.strengths || [],
         weaknesses: analysisData.weaknesses || [],
         suggestions: analysisData.suggestions || [],
         keywords: analysisData.keywords || { found: [], missing: [], recommended: [] },
         atsIssues: normalizedAtsIssues,
+        topFixes,
+        working: (analysisData.working || []).slice(0, 3).map(String),
       };
 
       // Update resume with all data

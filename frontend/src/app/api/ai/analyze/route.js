@@ -138,6 +138,16 @@ export async function POST(request) {
 
       // Update resume with analysis
       resume.scores = normalizedScores;
+      const rawFixes = analysis.topFixes || [];
+      const topFixes = rawFixes.slice(0, 3).map((fix) => {
+        if (typeof fix === 'string') return { title: fix, detail: fix, priority: 1 };
+        return {
+          title:    String(fix?.title    || fix?.suggestion || ''),
+          detail:   String(fix?.detail   || fix?.description || fix?.suggestion || ''),
+          priority: Number(fix?.priority || 1),
+        };
+      }).filter((f) => f.title);
+
       resume.analysis = {
         strengths: analysis.strengths || [],
         weaknesses: analysis.weaknesses || [],
@@ -145,6 +155,8 @@ export async function POST(request) {
         keywords: analysis.keywords || { found: [], missing: [], recommended: [] },
         atsIssues: normalizedAtsIssues,
         fdiReadiness: analysis.fdiReadiness || null,
+        topFixes,
+        working: (analysis.working || []).slice(0, 3).map(String),
       };
       resume.status = 'analyzed';
       await resume.save();

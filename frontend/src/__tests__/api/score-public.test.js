@@ -11,7 +11,7 @@ vi.mock('@anthropic-ai/sdk', () => ({
 const mockCallOpenAI = vi.fn();
 vi.mock('@/lib/openai', () => ({
   callOpenAI: (...args) => mockCallOpenAI(...args),
-  SYSTEM_PROMPTS: { analyzeResume: 'ANALYZE_PROMPT' },
+  SYSTEM_PROMPTS: { analyzeResume: 'ANALYZE_PROMPT', scorePublic: 'SCORE_PUBLIC_PROMPT' },
 }));
 
 vi.mock('@/lib/parsePdf', () => ({
@@ -75,7 +75,7 @@ describe('POST /api/ai/score-public', () => {
     }));
     vi.doMock('@/lib/openai', () => ({
       callOpenAI: (...args) => mockCallOpenAI(...args),
-      SYSTEM_PROMPTS: { analyzeResume: 'ANALYZE_PROMPT' },
+      SYSTEM_PROMPTS: { analyzeResume: 'ANALYZE_PROMPT', scorePublic: 'SCORE_PUBLIC_PROMPT' },
     }));
     vi.doMock('@/lib/parsePdf', () => ({
       extractPdfText: vi.fn().mockResolvedValue(
@@ -95,9 +95,11 @@ describe('POST /api/ai/score-public', () => {
 
     mockCallOpenAI.mockResolvedValue({
       scores: VALID_SCORES,
-      strengths: ['Good format'],
-      weaknesses: ['No metrics'],
-      suggestions: ['Add metrics to bullets', 'Include LinkedIn URL'],
+      topFixes: [
+        { title: 'Chỉ 1/26 bullet có số liệu', detail: 'Thêm %, VND vào achievements' },
+        { title: 'Thiếu từ khóa FDI', detail: 'Bổ sung: SAP, ERP, ISO 9001' },
+      ],
+      working: ['Format PDF chuẩn', 'Thông tin liên hệ đầy đủ'],
     });
   });
 
@@ -148,12 +150,55 @@ describe('POST /api/ai/score-public', () => {
     expect(body.data.topFixes).toHaveLength(2);
   });
 
+  it('topFixes are objects with title and detail', async () => {
+    const req = makeRequest({ file: makeFile(), ip: '10.1.0.6' });
+    const res = await POST(req);
+    const body = await res.json();
+    const fix = body.data.topFixes[0];
+    expect(fix).toHaveProperty('title');
+    expect(fix).toHaveProperty('detail');
+    expect(typeof fix.title).toBe('string');
+    expect(typeof fix.detail).toBe('string');
+    expect(fix.title.length).toBeGreaterThan(0);
+  });
+
+  it('returns working array', async () => {
+    const req = makeRequest({ file: makeFile(), ip: '10.1.0.7' });
+    const res = await POST(req);
+    const body = await res.json();
+    expect(body.data).toHaveProperty('working');
+    expect(Array.isArray(body.data.working)).toBe(true);
+  });
+
   it('does NOT return strengths or weaknesses', async () => {
     const req = makeRequest({ file: makeFile(), ip: '10.1.0.3' });
     const res = await POST(req);
     const body = await res.json();
     expect(body.data).not.toHaveProperty('strengths');
     expect(body.data).not.toHaveProperty('weaknesses');
+  });
+
+  it('normalizes string topFixes from AI into {title, detail} objects', async () => {
+    mockCallOpenAI.mockResolvedValue({
+      scores: VALID_SCORES,
+      topFixes: ['Fix A', 'Fix B'],
+      working: [],
+    });
+    const req = makeRequest({ file: makeFile(), ip: '10.1.0.8' });
+    const res = await POST(req);
+    const body = await res.json();
+    expect(body.data.topFixes[0]).toMatchObject({ title: 'Fix A', detail: 'Fix A' });
+  });
+
+  it('falls back to suggestions[] when topFixes is absent', async () => {
+    mockCallOpenAI.mockResolvedValue({
+      scores: VALID_SCORES,
+      suggestions: ['Add metrics', 'Add keywords'],
+    });
+    const req = makeRequest({ file: makeFile(), ip: '10.1.0.9' });
+    const res = await POST(req);
+    const body = await res.json();
+    expect(body.data.topFixes.length).toBeGreaterThan(0);
   });
 
   it('accepts DOCX files', async () => {

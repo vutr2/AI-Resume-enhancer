@@ -79,9 +79,16 @@ Chỉ trả về JSON, không có text khác. Nếu không tìm thấy thông ti
     "keywordScore": 0-100,
     "fdiScore": 0-100
   },
-  "suggestions": ["Gợi ý 1 ngắn gọn", "Gợi ý 2 ngắn gọn"]
+  "topFixes": [
+    {
+      "title": "Tiêu đề ngắn gọn (3-5 từ)",
+      "detail": "Mô tả CỤ THỂ với số đếm thực tế từ CV, ví dụ: 'Chỉ 2/15 bullet points có số liệu định lượng. Thêm %, $, thời gian, số người vào các bullet còn lại.'",
+      "priority": 1
+    }
+  ],
+  "working": ["Điểm tốt 1 ngắn gọn", "Điểm tốt 2 ngắn gọn"]
 }
-Chỉ trả về JSON, không thêm text nào khác.`,
+QUAN TRỌNG: topFixes phải CỰC KỲ CỤ THỂ — đếm số bullet, số từ khóa, số section thực tế trong CV. Không dùng lời chung chung. Trả về đúng 2 topFixes. Chỉ trả về JSON, không thêm text nào khác.`,
 
   analyzeResume: `Bạn là chuyên gia tuyển dụng và ATS (Applicant Tracking System). Phân tích CV và trả về JSON với cấu trúc:
 {
@@ -109,6 +116,14 @@ Chỉ trả về JSON, không thêm text nào khác.`,
     "missing": ["Từ khóa còn thiếu"],
     "recommended": ["Từ khóa nên thêm"]
   },
+  "topFixes": [
+    {
+      "title": "Tiêu đề ngắn gọn (3-5 từ)",
+      "detail": "Mô tả CỤ THỂ với số đếm thực tế — ví dụ: 'Chỉ 1/12 bullet points có số liệu định lượng. Thêm %, số người, thời gian tiết kiệm vào 11 bullet còn lại.' KHÔNG dùng lời chung chung.",
+      "priority": 1
+    }
+  ],
+  "working": ["Điều CV làm tốt 1", "Điều CV làm tốt 2"],
   "atsIssues": [
     {
       "type": "format/content/keyword",
@@ -120,7 +135,7 @@ Chỉ trả về JSON, không thêm text nào khác.`,
 }
 
 fdiScore (0-100) được tính dựa trên: chất lượng tiếng Anh (30%), có số liệu định lượng (25%), format ATS-clean (25%), từ khóa ngành FDI (20%).
-Đánh giá khách quan, chi tiết và đưa ra gợi ý cụ thể để cải thiện CV.`,
+QUAN TRỌNG: topFixes phải CỰC KỲ CỤ THỂ — đếm số bullet thực tế, số từ khóa thiếu, section nào thiếu. Trả về đúng 3 topFixes theo thứ tự ưu tiên. Đánh giá khách quan, chi tiết.`,
 
   rewriteContent: `Bạn là chuyên gia viết CV chuyên nghiệp. Viết lại CV thành văn bản hoàn chỉnh, chuyên nghiệp, sẵn sàng in ấn.
 

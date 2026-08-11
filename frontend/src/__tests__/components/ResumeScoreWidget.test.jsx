@@ -31,7 +31,11 @@ const MOCK_RESULT = {
       overall: 72, atsScore: 68, contentScore: 75,
       formatScore: 80, keywordScore: 65, fdiScore: 60,
     },
-    topFixes: ['Add metrics to achievements', 'Include LinkedIn URL'],
+    topFixes: [
+      { title: 'Chỉ 1/26 bullet có số liệu', detail: 'Thêm %, VND vào achievements' },
+      { title: 'Thiếu từ khóa FDI', detail: 'Bổ sung: SAP, ERP, ISO 9001' },
+    ],
+    working: ['Format PDF chuẩn', 'Thông tin liên hệ đầy đủ'],
   },
 };
 
@@ -130,6 +134,21 @@ describe('ResumeScoreWidget — result state', () => {
     });
   });
 
+  it('shows fix-01 title and detail', async () => {
+    mockFetch.mockReturnValue(okResponse());
+    render(<ResumeScoreWidget />);
+
+    const input = screen.getByTestId('file-input');
+    await act(async () => {
+      fireEvent.change(input, { target: { files: [makeFile()] } });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('fix-01')).toBeInTheDocument();
+      expect(screen.getByText('Chỉ 1/26 bullet có số liệu')).toBeInTheDocument();
+    });
+  });
+
   it('renders CTA link to /register', async () => {
     mockFetch.mockReturnValue(okResponse());
     render(<ResumeScoreWidget />);
@@ -181,7 +200,11 @@ describe('ResumeScoreWidget — sessionStorage restore', () => {
   it('restores previous result from sessionStorage on mount', async () => {
     const saved = {
       scores: { overall: 85, atsScore: 80, contentScore: 90, formatScore: 88, keywordScore: 75, fdiScore: 70 },
-      topFixes: ['Fix 1', 'Fix 2'],
+      topFixes: [
+        { title: 'Fix 1 title', detail: 'Fix 1 detail' },
+        { title: 'Fix 2 title', detail: 'Fix 2 detail' },
+      ],
+      working: [],
       fileName: 'cached-cv.pdf',
     };
     sessionStorage.setItem('dauviec_public_score', JSON.stringify(saved));

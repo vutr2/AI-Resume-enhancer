@@ -1,195 +1,302 @@
 'use client';
 
-import { Shield, AlertCircle, CheckCircle, XCircle, Info } from 'lucide-react';
+import { Shield, RotateCcw, ChevronRight, CheckCircle, Lock } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import { useResumeStore } from '@/store/useResumeStore';
-import { clsx } from 'clsx';
+import { useAuthStore } from '@/store/useAuthStore';
 import toast from 'react-hot-toast';
 
-export default function ATSTab({ resume }) {
+const SCORE_LABEL = (s) => {
+  if (s >= 80) return { text: 'Tốt', color: '#22c55e' };
+  if (s >= 60) return { text: 'Cần cải thiện', color: '#f59e0b' };
+  return { text: 'Yếu', color: '#ef4444' };
+};
+
+const CATEGORIES = [
+  { key: 'contentScore',     label: 'Chất lượng nội dung' },
+  { key: 'atsScore',         label: 'ATS & cấu trúc'      },
+  { key: 'keywordScore',     label: 'Từ khóa'              },
+  { key: 'formatScore',      label: 'Định dạng'            },
+  { key: 'readabilityScore', label: 'Dễ đọc'               },
+  { key: 'fdiScore',         label: 'FDI Ready'            },
+];
+
+function ScoreCircle({ score }) {
+  const radius = 54;
+  const circ = 2 * Math.PI * radius;
+  const { text, color } = SCORE_LABEL(score);
+  return (
+    <div className="flex flex-col items-center gap-2" data-testid="score-circle">
+      <div className="relative w-36 h-36">
+        <svg className="w-full h-full -rotate-90" viewBox="0 0 128 128">
+          <circle cx="64" cy="64" r={radius} fill="none" stroke="var(--border)" strokeWidth="10" />
+          <circle
+            cx="64" cy="64" r={radius} fill="none"
+            stroke={color} strokeWidth="10"
+            strokeDasharray={circ}
+            strokeDashoffset={circ - (score / 100) * circ}
+            strokeLinecap="round"
+            style={{ transition: 'stroke-dashoffset 1s ease' }}
+          />
+        </svg>
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <span className="text-3xl font-bold text-[var(--foreground)]">{score}</span>
+          <span className="text-xs text-[var(--foreground-muted)]">/100</span>
+        </div>
+      </div>
+      <span className="text-sm font-semibold" style={{ color }}>{text}</span>
+    </div>
+  );
+}
+
+function CategoryBar({ label, score }) {
+  const { color } = SCORE_LABEL(score);
+  return (
+    <div className="flex items-center gap-3" data-testid="category-bar">
+      <span className="text-xs text-[var(--foreground-secondary)] w-32 shrink-0">{label}</span>
+      <div className="flex-1 h-1.5 rounded-full bg-[var(--border)]">
+        <div
+          className="h-1.5 rounded-full transition-all duration-700"
+          style={{ width: `${score}%`, backgroundColor: color }}
+        />
+      </div>
+      <span className="text-xs font-semibold text-[var(--foreground)] w-12 text-right tabular-nums">
+        {score}<span className="text-[var(--foreground-muted)] font-normal">/100</span>
+      </span>
+    </div>
+  );
+}
+
+/* Locked version — shows score number + lock icon, no bar */
+function CategoryRowLocked({ label, score }) {
+  return (
+    <div className="flex items-center justify-between py-3 border-b border-[var(--border)] last:border-0" data-testid="category-bar">
+      <span className="text-sm text-[var(--foreground)]">{label}</span>
+      <div className="flex items-center gap-2">
+        <span className="text-sm font-semibold tabular-nums text-[var(--foreground)]">{score}</span>
+        <Lock className="w-3.5 h-3.5 text-[var(--foreground-muted)]" />
+      </div>
+    </div>
+  );
+}
+
+export default function ATSTab({ resume, onTabChange }) {
   const { analyzeATS, scores, analysis, isAnalyzing } = useResumeStore();
+  const { hasFullAccess } = useAuthStore();
+
+  const unlocked = hasFullAccess(resume?._id);
+  const topFixes = analysis?.topFixes || [];
+  const working   = analysis?.working   || [];
 
   const handleAnalyze = async (force = false) => {
     if (!resume?._id) return;
-    toast.loading('Đang phân tích ATS...', { id: 'ats-loading' });
+    toast.loading('Đang phân tích ATS...', { id: 'ats' });
     const result = await analyzeATS(resume._id, null, force);
-    toast.dismiss('ats-loading');
-    if (result.success) {
-      toast.success('Phân tích ATS hoàn tất!');
-    } else {
-      toast.error(result.error || 'Lỗi khi phân tích ATS');
-    }
+    toast.dismiss('ats');
+    if (result.success) toast.success('Phân tích ATS hoàn tất!');
+    else toast.error(result.error || 'Lỗi khi phân tích ATS');
   };
-
-  // Chuyển đổi từ scores/analysis sang format atsAnalysis
-  const atsAnalysis = scores ? {
-    score: scores.atsScore || scores.overall || 0,
-    issues: analysis?.atsIssues?.map((issue) => ({
-      severity: issue.severity === 'high' ? 'critical' : issue.severity === 'medium' ? 'warning' : 'info',
-      title: issue.issueType || issue.type || 'Vấn đề',
-      description: issue.description,
-      suggestion: issue.suggestion,
-    })) || [],
-    recommendations: analysis?.suggestions || [],
-  } : null;
 
   if (!resume) {
     return (
       <Card className="text-center py-12">
-        <p className="text-[var(--foreground-muted)]">
-          Vui lòng tải lên CV trước khi kiểm tra ATS
-        </p>
+        <p className="text-[var(--foreground-muted)]">Vui lòng tải lên CV trước khi kiểm tra ATS</p>
       </Card>
     );
   }
 
-  const getIssueIcon = (severity) => {
-    switch (severity) {
-      case 'critical':
-        return <XCircle className="w-5 h-5 text-[var(--error)]" />;
-      case 'warning':
-        return <AlertCircle className="w-5 h-5 text-[var(--warning)]" />;
-      case 'info':
-        return <Info className="w-5 h-5 text-[var(--info)]" />;
-      default:
-        return <CheckCircle className="w-5 h-5 text-[var(--success)]" />;
-    }
-  };
+  /* ── Empty state ── */
+  if (!scores) {
+    return (
+      <Card className="text-center py-12" data-testid="empty-state">
+        <Shield className="w-16 h-16 text-[var(--primary)] mx-auto mb-4" />
+        <h2 className="text-xl font-bold text-[var(--foreground)] mb-2">Kiểm tra tính tương thích ATS</h2>
+        <p className="text-[var(--foreground-secondary)] mb-6 max-w-md mx-auto">
+          Phân tích CV để phát hiện các vấn đề có thể làm giảm khả năng vượt qua hệ thống lọc tự động của FDI
+        </p>
+        <Button onClick={() => handleAnalyze(false)} loading={isAnalyzing} size="lg">
+          <Shield className="w-5 h-5 mr-2" />
+          Bắt đầu kiểm tra
+        </Button>
+      </Card>
+    );
+  }
 
-  const getIssueColor = (severity) => {
-    switch (severity) {
-      case 'critical':
-        return 'border-[var(--error)] bg-[var(--error)]';
-      case 'warning':
-        return 'border-[var(--warning)] bg-[var(--warning)]';
-      case 'info':
-        return 'border-[var(--info)] bg-[var(--info)]';
-      default:
-        return 'border-[var(--success)] bg-[var(--success)]';
-    }
-  };
+  const overall = scores.overall || 0;
 
+  /* ── Results ── */
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      {/* Analyze Button */}
-      {!atsAnalysis && (
-        <Card className="text-center py-12">
-          <Shield className="w-16 h-16 text-[var(--primary)] mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-[var(--foreground)] mb-2">
-            Kiểm tra tính tương thích ATS
-          </h2>
-          <p className="text-[var(--foreground-secondary)] mb-6 max-w-md mx-auto">
-            Phân tích CV để phát hiện các vấn đề định dạng và từ ngữ có thể làm giảm khả năng vượt qua hệ thống lọc tự động (ATS)
-          </p>
-          <Button onClick={handleAnalyze} loading={isAnalyzing} size="lg">
-            <Shield className="w-5 h-5 mr-2" />
-            Bắt đầu kiểm tra
-          </Button>
-        </Card>
-      )}
+    <div className="max-w-2xl mx-auto space-y-4" data-testid="ats-results">
 
-      {/* Results */}
-      {atsAnalysis && (
+      {/* Reanalyze button */}
+      <div className="flex justify-end">
+        <button
+          onClick={() => handleAnalyze(true)}
+          disabled={isAnalyzing}
+          className="flex items-center gap-1.5 text-xs text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-colors"
+          data-testid="reanalyze-btn"
+        >
+          <RotateCcw className="w-3.5 h-3.5" />
+          Phân tích lại
+        </button>
+      </div>
+
+      {/* ── LOCKED VIEW ── */}
+      {!unlocked ? (
         <>
-          {/* Score */}
-          <Card
-            className={clsx(
-              'text-white',
-              atsAnalysis.score >= 80
-                ? 'bg-[var(--success)]'
-                : atsAnalysis.score >= 60
-                ? 'bg-[var(--warning)]'
-                : 'bg-[var(--error)]'
-            )}
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-lg opacity-90">Điểm ATS</p>
-                <p className="text-sm opacity-75">
-                  {atsAnalysis.score >= 80
-                    ? 'CV của bạn tương thích tốt với ATS'
-                    : atsAnalysis.score >= 60
-                    ? 'Cần cải thiện một số vấn đề'
-                    : 'Cần sửa chữa nhiều vấn đề'}
-                </p>
-              </div>
-              <div className="text-right">
-                <span className="text-5xl font-bold">{atsAnalysis.score}</span>
-                <span className="text-xl opacity-75">/100</span>
-              </div>
-            </div>
-          </Card>
-
-          {/* Issues */}
+          {/* Score hero */}
           <Card>
-            <h3 className="font-semibold text-[var(--foreground)] mb-4">
-              Vấn đề phát hiện ({atsAnalysis.issues?.length || 0})
-            </h3>
-            <div className="space-y-3">
-              {atsAnalysis.issues?.map((issue, index) => (
-                <div
-                  key={index}
-                  className={clsx(
-                    'p-4 rounded-lg border-l-4 bg-opacity-5',
-                    getIssueColor(issue.severity)
-                  )}
-                >
-                  <div className="flex items-start gap-3">
-                    {getIssueIcon(issue.severity)}
-                    <div className="flex-1">
-                      <p className="font-medium text-[var(--foreground)]">
-                        {issue.title}
-                      </p>
-                      <p className="text-sm text-[var(--foreground-secondary)] mt-1">
-                        {issue.description}
-                      </p>
-                      {issue.suggestion && (
-                        <p className="text-sm text-[var(--primary)] mt-2">
-                          Gợi ý: {issue.suggestion}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-              {(!atsAnalysis.issues || atsAnalysis.issues.length === 0) && (
-                <div className="flex items-center gap-3 p-4 rounded-lg bg-[var(--success)] bg-opacity-5">
-                  <CheckCircle className="w-5 h-5 text-[var(--success)]" />
-                  <p className="text-[var(--foreground)]">
-                    Tuyệt vời! Không phát hiện vấn đề nào.
-                  </p>
-                </div>
+            <div className="text-center py-4">
+              <p className="text-xs font-semibold tracking-widest text-[var(--foreground-muted)] uppercase mb-3">
+                CV của bạn đạt điểm
+              </p>
+              <div className="flex items-baseline justify-center gap-1 mb-3">
+                <span className="text-6xl font-bold text-[var(--foreground)]">{overall}</span>
+                <span className="text-2xl text-[var(--foreground-muted)] font-normal">/100</span>
+              </div>
+              {topFixes.length > 0 && (
+                <p className="text-sm text-[var(--foreground-secondary)] max-w-sm mx-auto">
+                  Được chấm bởi AI theo tiêu chuẩn FDI. Tìm thấy{' '}
+                  <strong className="text-[var(--foreground)]">{topFixes.length} lỗi</strong>{' '}
+                  cần sửa. Mở khóa để xem chi tiết từng lỗi và cách fix.
+                </p>
               )}
             </div>
           </Card>
 
-          {/* Recommendations */}
-          {atsAnalysis.recommendations && atsAnalysis.recommendations.length > 0 && (
-            <Card>
-              <h3 className="font-semibold text-[var(--foreground)] mb-4">
-                Khuyến nghị
-              </h3>
-              <ul className="space-y-2">
-                {atsAnalysis.recommendations.map((rec, index) => (
-                  <li
-                    key={index}
-                    className="flex items-start gap-2 text-sm text-[var(--foreground-secondary)]"
-                  >
-                    <CheckCircle className="w-4 h-4 text-[var(--primary)] mt-0.5" />
-                    {rec}
-                  </li>
+          {/* Category list — locked rows */}
+          <Card>
+            <div className="-my-1">
+              {CATEGORIES.map((c) => (
+                <CategoryRowLocked key={c.key} label={c.label} score={scores[c.key] || 0} />
+              ))}
+            </div>
+          </Card>
+
+          {/* Fixes — all blurred with unlock overlay */}
+          {topFixes.length > 0 && (
+            <Card data-testid="top-fixes">
+              <p className="text-xs font-semibold tracking-widest text-[var(--foreground-muted)] uppercase mb-4">
+                Phần mềm ATS phát hiện
+              </p>
+
+              {/* Blurred list */}
+              <div className="relative overflow-hidden" style={{ minHeight: '200px' }}>
+                <div className="space-y-4 select-none pointer-events-none blur-sm opacity-50" aria-hidden>
+                  {topFixes.map((fix, i) => (
+                    <div key={i} className="flex gap-3" data-testid="fix-locked">
+                      <span className="text-xs font-bold text-[var(--primary)] mt-0.5 shrink-0">
+                        0{i + 1}
+                      </span>
+                      <div>
+                        <p className="font-semibold text-[var(--foreground)] mb-0.5">{fix.title}</p>
+                        <p className="text-sm text-[var(--foreground-secondary)]">{fix.detail}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Unlock overlay */}
+                <div
+                  className="absolute inset-0 flex flex-col items-center justify-center"
+                  style={{ background: 'linear-gradient(to bottom, transparent 0%, var(--background) 30%)' }}
+                  data-testid="fixes-blur-overlay"
+                >
+                  <div className="mt-8 flex flex-col items-center gap-3 text-center px-6">
+                    <div className="w-10 h-10 rounded-full bg-[var(--primary)]/10 flex items-center justify-center">
+                      <Lock className="w-5 h-5 text-[var(--primary)]" />
+                    </div>
+                    <p className="font-semibold text-[var(--foreground)]">
+                      Xem toàn bộ lỗi và cách sửa
+                    </p>
+                    <p className="text-sm text-[var(--foreground-secondary)] max-w-xs">
+                      {topFixes.length} lỗi đã tìm thấy. Mở khóa để xem chi tiết và gợi ý sửa sẵn dán.
+                    </p>
+                    <Button
+                      onClick={() => onTabChange?.('rewrite')}
+                      className="gap-2 mt-1"
+                      data-testid="cta-rewrite"
+                    >
+                      Mở khóa tất cả {topFixes.length} lỗi
+                      <ChevronRight className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          )}
+        </>
+      ) : (
+        /* ── UNLOCKED VIEW ── */
+        <>
+          {/* Score card with full category bars */}
+          <Card>
+            <div className="flex flex-col sm:flex-row gap-8 items-center">
+              <div className="flex flex-col items-center gap-1 shrink-0">
+                <ScoreCircle score={overall} />
+              </div>
+              <div className="flex-1 w-full space-y-3">
+                <p className="text-xs font-semibold tracking-widest text-[var(--foreground-muted)] uppercase mb-3">
+                  Chi tiết từng tiêu chí
+                </p>
+                {CATEGORIES.map((c) => (
+                  <CategoryBar key={c.key} label={c.label} score={scores[c.key] || 0} />
                 ))}
-              </ul>
+              </div>
+            </div>
+          </Card>
+
+          {/* Top Fixes — all visible */}
+          {topFixes.length > 0 && (
+            <Card data-testid="top-fixes">
+              <p className="text-xs font-semibold tracking-widest text-[var(--foreground-muted)] uppercase mb-4">
+                Phần mềm ATS phát hiện
+              </p>
+              <div className="space-y-5">
+                {topFixes.map((fix, i) => (
+                  <div key={i} className="flex gap-3" data-testid="fix-visible">
+                    <span className="text-xs font-bold text-[var(--primary)] mt-0.5 shrink-0">
+                      0{i + 1}
+                    </span>
+                    <div>
+                      <p className="font-semibold text-[var(--foreground)] mb-0.5">{fix.title}</p>
+                      <p className="text-sm text-[var(--foreground-secondary)]">{fix.detail}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </Card>
           )}
 
-          {/* Re-analyze */}
-          <div className="text-center">
-            <Button onClick={() => handleAnalyze(true)} loading={isAnalyzing} variant="secondary">
-              Phân tích lại
-            </Button>
-          </div>
+          {/* CTA for unlocked users */}
+          <Card className="bg-gradient-to-r from-[var(--primary)]/5 to-[var(--primary)]/10 border-[var(--primary)]/20" data-testid="cta-unlocked">
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <div>
+                <p className="font-semibold text-[var(--foreground)]">Sẵn sàng sửa những lỗi này?</p>
+                <p className="text-sm text-[var(--foreground-secondary)]">AI sẽ viết lại CV của bạn để đạt 80+ điểm</p>
+              </div>
+              <Button onClick={() => onTabChange?.('rewrite')} className="gap-2 shrink-0" data-testid="cta-rewrite-unlocked">
+                Viết lại CV ngay
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
+          </Card>
+
+          {/* Working section */}
+          {working.length > 0 && (
+            <div className="flex flex-wrap gap-3 pt-1" data-testid="working-section">
+              <span className="text-xs font-semibold tracking-widest text-[var(--foreground-muted)] uppercase self-center">
+                Working
+              </span>
+              {working.map((w, i) => (
+                <span key={i} className="flex items-center gap-1.5 text-xs text-[var(--foreground-secondary)]">
+                  <CheckCircle className="w-3.5 h-3.5 text-[var(--success)]" />
+                  {w}
+                </span>
+              ))}
+            </div>
+          )}
         </>
       )}
     </div>

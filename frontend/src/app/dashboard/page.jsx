@@ -133,7 +133,7 @@ function DashboardPageContent() {
         return <JobMatchTab resume={currentResume} />;
 
       case 'ats':
-        return <ATSTab resume={currentResume} />;
+        return <ATSTab resume={currentResume} onTabChange={setActiveTab} />;
 
       case 'cover':
         return <CoverLetterTab resume={currentResume} />;

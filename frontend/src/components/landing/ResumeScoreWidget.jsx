@@ -201,35 +201,65 @@ export default function ResumeScoreWidget() {
         </div>
       </div>
 
-      {/* Gated: Top fixes — blurred, CTA to register */}
-      <div className="relative border-t border-[var(--border)]">
-        {/* blurred preview */}
-        <div className="px-6 py-4 select-none pointer-events-none blur-sm opacity-60" aria-hidden>
-          <p className="text-xs font-semibold text-[var(--foreground-muted)] uppercase tracking-wider mb-3">
-            Top sửa ngay
+      {/* Top Fixes — first visible, rest blurred + gated */}
+      <div className="border-t border-[var(--border)]">
+        <div className="px-6 py-4">
+          <p className="text-xs font-semibold text-[var(--foreground-muted)] uppercase tracking-widest mb-4">
+            Top fixes
           </p>
-          {(topFixes.length > 0 ? topFixes : ['Thêm số liệu vào các mục thành tích', 'Bổ sung từ khóa theo ngành']).map((fix, i) => (
-            <div key={i} className="flex items-start gap-2 mb-2">
-              <span className="text-xs font-bold text-[var(--primary)]">0{i + 1}</span>
-              <p className="text-sm text-[var(--foreground)]">{typeof fix === 'object' ? fix.suggestion || fix.text || JSON.stringify(fix) : fix}</p>
-            </div>
-          ))}
-        </div>
 
-        {/* Overlay CTA */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-[var(--background)]/80 backdrop-blur-[2px]">
-          <Lock className="w-5 h-5 text-[var(--primary)] mb-2" />
-          <p className="text-sm font-semibold text-[var(--foreground)] mb-3 text-center px-4">
-            Đăng ký miễn phí để xem phân tích chi tiết
-          </p>
-          <Link
-            href="/register"
-            className="btn btn-primary text-sm px-6 py-2 flex items-center gap-2"
-            data-testid="cta-register"
-          >
-            Xem đầy đủ miễn phí
-            <ArrowRight className="w-4 h-4" />
-          </Link>
+          {/* Fix 01 — always visible */}
+          {topFixes[0] && (
+            <div className="flex gap-3 mb-4" data-testid="fix-01">
+              <span className="text-xs font-bold text-[var(--primary)] mt-0.5 shrink-0">01</span>
+              <div>
+                <p className="font-semibold text-sm text-[var(--foreground)] mb-0.5">
+                  {typeof topFixes[0] === 'object' ? topFixes[0].title : topFixes[0]}
+                </p>
+                <p className="text-xs text-[var(--foreground-secondary)]">
+                  {typeof topFixes[0] === 'object' ? topFixes[0].detail : topFixes[0]}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Fix 02+ — blurred with CTA overlay */}
+          <div className="relative">
+            {topFixes[1] && (
+              <div className="flex gap-3 blur-sm opacity-60 select-none pointer-events-none" aria-hidden>
+                <span className="text-xs font-bold text-[var(--primary)] mt-0.5 shrink-0">02</span>
+                <div>
+                  <p className="font-semibold text-sm text-[var(--foreground)] mb-0.5">
+                    {typeof topFixes[1] === 'object' ? topFixes[1].title : topFixes[1]}
+                  </p>
+                  <p className="text-xs text-[var(--foreground-secondary)]">
+                    {typeof topFixes[1] === 'object' ? topFixes[1].detail : topFixes[1]}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Overlay */}
+            <div
+              className="absolute inset-0 flex flex-col items-center justify-center"
+              style={{ background: 'linear-gradient(to bottom, transparent 0%, var(--background) 35%)' }}
+            >
+              <div className="mt-6 flex flex-col items-center gap-2 text-center">
+                <Lock className="w-4 h-4 text-[var(--primary)]" />
+                <p className="text-xs font-semibold text-[var(--foreground)] px-4">
+                  Đăng ký để xem tất cả lỗi + viết lại CV miễn phí
+                </p>
+                <Link
+                  href="/register"
+                  className="btn btn-primary text-sm px-5 py-2 flex items-center gap-1.5 mt-1"
+                  data-testid="cta-register"
+                >
+                  Xem đầy đủ miễn phí
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
