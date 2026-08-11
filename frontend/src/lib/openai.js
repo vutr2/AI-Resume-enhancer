@@ -81,14 +81,16 @@ Chỉ trả về JSON, không có text khác. Nếu không tìm thấy thông ti
   },
   "topFixes": [
     {
-      "title": "Tiêu đề ngắn gọn (3-5 từ)",
-      "detail": "Mô tả CỤ THỂ với số đếm thực tế từ CV, ví dụ: 'Chỉ 2/15 bullet points có số liệu định lượng. Thêm %, $, thời gian, số người vào các bullet còn lại.'",
-      "priority": 1
+      "title": "Tiêu đề ngắn (tối đa 8 từ)",
+      "detail": "1 câu ngắn gọn, tối đa 15 từ, có số cụ thể. Ví dụ: 'Chỉ 2/15 bullet có số liệu. Thêm %, số người, thời gian.'"
     }
   ],
-  "working": ["Điểm tốt 1 ngắn gọn", "Điểm tốt 2 ngắn gọn"]
+  "working": ["Điểm tốt 1 (dưới 6 từ)", "Điểm tốt 2 (dưới 6 từ)"]
 }
-QUAN TRỌNG: topFixes phải CỰC KỲ CỤ THỂ — đếm số bullet, số từ khóa, số section thực tế trong CV. Không dùng lời chung chung. Trả về đúng 2 topFixes. Chỉ trả về JSON, không thêm text nào khác.`,
+QUAN TRỌNG:
+- topFixes: đúng 2 mục, mỗi detail KHÔNG ĐƯỢC quá 20 từ — đếm số thực tế từ CV rồi viết ngắn gọn
+- working: đúng 2 mục ngắn
+- Chỉ trả về JSON, không thêm text nào khác`,
 
   analyzeResume: `Bạn là chuyên gia tuyển dụng và ATS (Applicant Tracking System). Phân tích CV và trả về JSON với cấu trúc:
 {
